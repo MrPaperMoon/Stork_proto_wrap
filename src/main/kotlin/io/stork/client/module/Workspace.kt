@@ -3,32 +3,22 @@ package io.stork.client.module
 import io.stork.proto.publicProfile.PublicProfileListRequest
 import io.stork.proto.publicProfile.PublicProfileListResponse
 import io.stork.proto.workspace.*
+import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface Workspace {
-    @POST("publicProfile.list")
-    suspend fun list(@Body body:PublicProfileListRequest): PublicProfileListResponse
+    suspend fun join(body: JoinWorkspaceRequest): JoinWorkspaceResponse
 
-    @POST("workspace.join")
-    suspend fun join(@Body body:JoinWorkspaceRequest): JoinWorkspaceResponse
+    suspend fun invite(body: InviteToWorkspaceRequest): InviteToWorkspaceResponse
 
-    @POST("workspace.invite")
-    suspend fun invite(@Body body:InviteToWorkspaceRequest): InviteToWorkspaceResponse
+    suspend fun importMembersFromSlack(body: ImportMembersToWorkspaceFromSlackRequest): ImportMembersToWorkspaceFromSlackResponse
 
-    @POST("workspace.importMembers.slack")
-    suspend fun importMembersFromSlack(@Body body:ImportMembersToWorkspaceFromSlackRequest): ImportMembersToWorkspaceFromSlackResponse
+    suspend fun importMembersFromGoogle(body: ImportMembersToWorkspaceFromGoogleRequest): ImportMembersToWorkspaceFromGoogleResponse
 
-    @POST("workspace.importMembers.google")
-    suspend fun importMembersFromGoogle(@Body body:ImportMembersToWorkspaceFromGoogleRequest): ImportMembersToWorkspaceFromGoogleResponse
+    suspend fun list(body: WorkspaceListRequest): WorkspaceListResponse
 
-    @POST("workspace.list")
-    suspend fun list(@Body body:WorkspaceListRequest): WorkspaceListResponse
+    suspend fun create(body: CreateWorkspaceRequest): CreateWorkspaceResponse
 
-    @POST("workspace.create")
-    suspend fun create(@Body body:CreateWorkspaceRequest): CreateWorkspaceResponse
-
-    @POST("workspace.checkSubdomain")
-    suspend fun checkSubdomain(@Body body:CheckWorkspaceSubdomainRequest): CheckWorkspaceSubdomainResponse
-
+    suspend fun checkSubdomain(body: CheckWorkspaceSubdomainRequest): CheckWorkspaceSubdomainResponse
 }

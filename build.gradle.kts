@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `java-library`
+    idea
     kotlin("jvm") version "1.3.72"
     id("com.google.protobuf") version "0.8.13"
 }
@@ -13,12 +14,19 @@ kotlin {
     }
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xallow-result-return-type"
+    }
+}
+
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-protobuf:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.2.1")
+
     implementation("com.tinder.scarlet:scarlet:0.1.10")
     implementation("com.tinder.scarlet:websocket-okhttp:0.1.10")
     implementation("com.tinder.scarlet:message-adapter-protobuf:0.1.10")
