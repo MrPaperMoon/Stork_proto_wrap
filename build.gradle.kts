@@ -22,9 +22,13 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    api("com.google.protobuf:protobuf-java:3.14.0")
+    api("com.google.protobuf:protobuf-java-util:3.14.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-protobuf:2.9.0")
+    implementation("com.squareup.retrofit2:converter-jackson:2.9.0")
+
     implementation("com.squareup.okhttp3:logging-interceptor:4.2.1")
 
     implementation("com.tinder.scarlet:scarlet:0.1.10")
@@ -51,9 +55,10 @@ tasks.withType<KotlinCompile>().configureEach {
 protobuf.protobuf.apply {
     // Configure the protoc executable
     protoc {
-        artifact = "com.google.protobuf:protoc:3.0.0"
+        artifact = "com.google.protobuf:protoc:3.14.0"
     }
 }
+
 repositories {
     mavenCentral()
 }

@@ -31,30 +31,30 @@ interface ApiClient: SessionManager {
     val websocket: EventWebsocket
 
     companion object {
-        operator fun invoke(baseUrl: String = "https://stork.team/api/"): ApiClient {
+        operator fun invoke(config: ApiClientConfig = ApiClientConfig()): ApiClient {
             val sessionManager: SessionManager = SessionManagerImpl()
 
             val client = OkHttpClient.Builder()
                     .addInterceptor(AuthInterceptor(sessionManager::sessionJwtToken))
-                    .addInterceptor(ContentTypeInterceptor("application/x-protobuf"))
+                    .addInterceptor(ContentTypeInterceptor(config.mediaType.contentType))
                     .addInterceptor(HttpLoggingInterceptor().apply {
-                        level = HttpLoggingInterceptor.Level.NONE
+                        level = config.logLevel.impl
                     })
                     .build()
 
-            val websocket = webSocket(client, sessionManager)
+            val websocket = webSocket(client, sessionManager, config.websocketUrl)
 
             val retrofit = Retrofit.Builder()
-                    .baseUrl(baseUrl)
+                    .baseUrl(config.apiBaseUrl)
                     .client(client)
-                    .addConverterFactory(ProtoConverterFactory.create())
+                    .addConverterFactory(config.mediaType.converterFactory)
                     .build()
 
             return RetrofitApiClient(retrofit, sessionManager, websocket)
         }
 
         @OptIn(ExperimentalTime::class)
-        private fun webSocket(client: OkHttpClient, sessionManager: SessionManager, websocketAddress: String = "wss://stork.team/ws/event"): EventWebsocket {
+        private fun webSocket(client: OkHttpClient, sessionManager: SessionManager, websocketAddress: String): EventWebsocket {
             val lifecycle = LifecycleRegistry()
 
             val signal: Signal<String?> = sessionManager.sessionTokenChangedSignal

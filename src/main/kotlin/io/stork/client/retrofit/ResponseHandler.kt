@@ -3,6 +3,7 @@ package io.stork.client.retrofit
 import io.stork.client.exceptions.AuthenticationException
 import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
+import io.stork.proto.error.AuthenticationError
 import io.stork.proto.error.UnhandledError
 import okhttp3.ResponseBody
 import retrofit2.Converter
@@ -15,10 +16,19 @@ import kotlin.Result.Companion.success
 class ResponseHandler(private val retrofit: Retrofit) {
     fun <T> Response<T>.getResult(): Result<T> = when (code()) {
         200 -> success(body()!!)
-        AuthenticationException.CODE -> failure(AuthenticationException(handleErrorBody(this)))
-        ValidationException.CODE -> failure(ValidationException(handleErrorBody(this)))
-        UnknownException.CODE -> failure(UnknownException(handleErrorBody(this)))
-        else -> failure(UnknownException(asUnhandledError()))
+        else -> failure(getError())
+    }
+
+    private fun Response<*>.getError(): Exception {
+        val errorBody = errorBody()
+        val code = code()
+        return when {
+            errorBody == null -> UnknownException(asUnhandledError())
+            code == AuthenticationException.CODE -> AuthenticationException(errorBody.parse())
+            code == ValidationException.CODE -> ValidationException(errorBody.parse())
+            code == UnknownException.CODE -> UnknownException(errorBody.parse())
+            else -> UnknownException(asUnhandledError())
+        }
     }
 
     private fun Response<*>.asUnhandledError(): UnhandledError = UnhandledError.newBuilder()
@@ -26,9 +36,9 @@ class ResponseHandler(private val retrofit: Retrofit) {
             .setMessage(message())
             .build()
 
-    private inline fun <reified T> handleErrorBody(response: Response<*>): T {
+    private inline fun <reified T> ResponseBody.parse(): T {
         val converter: Converter<ResponseBody, T> = getResponseBodyConverter()
-        return converter.convert(response.errorBody()!!)!!
+        return converter.convert(this)!!
     }
 
     private inline fun <reified T> getResponseBodyConverter(): Converter<ResponseBody, T> {
