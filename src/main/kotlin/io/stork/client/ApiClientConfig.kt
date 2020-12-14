@@ -1,9 +1,6 @@
 package io.stork.client
 
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Converter
-import retrofit2.converter.jackson.JacksonConverterFactory
-import retrofit2.converter.protobuf.ProtoConverterFactory
 
 data class ApiClientConfig(
     val apiBaseUrl: String = "https://stork.team/api/",
@@ -12,9 +9,9 @@ data class ApiClientConfig(
     val logLevel: LogLevel = LogLevel.NONE
 )
 
-enum class ApiMediaType(internal val contentType: String, internal val converterFactory: Converter.Factory) {
-    PROTOBUF("application/x-protobuf", ProtoConverterFactory.create()),
-    JSON("application/json", JacksonConverterFactory.create(objectMapper))
+enum class ApiMediaType(internal val contentType: String) {
+    PROTOBUF("application/x-protobuf"),
+    JSON("application/json")
 }
 
 enum class LogLevel(internal val impl: HttpLoggingInterceptor.Level) {

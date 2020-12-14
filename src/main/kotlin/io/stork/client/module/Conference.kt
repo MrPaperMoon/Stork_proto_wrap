@@ -1,10 +1,6 @@
 package io.stork.client.module
 
 import io.stork.proto.calls.conference.*
-import io.stork.proto.calls.rtc.*
-import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.POST
 
 interface Conference {
     suspend fun create(body: CreateConferenceRequest): CreateConferenceResponse

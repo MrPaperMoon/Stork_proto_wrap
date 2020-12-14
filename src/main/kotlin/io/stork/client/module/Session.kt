@@ -1,9 +1,6 @@
 package io.stork.client.module
 
 import io.stork.proto.session.*
-import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.POST
 
 interface Session {
     suspend fun generate(body: GenerateSessionRequest): GenerateSessionResponse

@@ -17,8 +17,6 @@ import io.stork.client.util.Signal
 import io.stork.client.util.map
 import io.stork.client.util.toPublisher
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
