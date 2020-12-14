@@ -4,13 +4,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     `java-library`
     idea
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.20"
     id("com.google.protobuf") version "0.8.13"
 }
 
 kotlin {
     sourceSets["main"].apply {
-        kotlin.srcDir("build/generated/source/proto/main/java")
+        kotlin.srcDir("build/generated/source/proto/main/kotlin")
     }
 }
 
@@ -24,7 +24,13 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     api("com.google.protobuf:protobuf-java:3.14.0")
     api("com.google.protobuf:protobuf-java-util:3.14.0")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+
+    implementation(platform("io.ktor:ktor-bom:1.4.3"))
+    implementation("io.ktor:ktor-client-core")
+    implementation("io.ktor:ktor-client-jackson")
+    implementation("io.ktor:ktor-client-okhttp")
+
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-protobuf:2.9.0")
     implementation("com.squareup.retrofit2:converter-jackson:2.9.0")

@@ -1,7 +1,5 @@
 package io.stork.client
 
-import io.stork.client.retrofit.ProtoJsonConverterFactory
-import okhttp3.MediaType
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Converter
 import retrofit2.converter.jackson.JacksonConverterFactory
@@ -16,7 +14,7 @@ data class ApiClientConfig(
 
 enum class ApiMediaType(internal val contentType: String, internal val converterFactory: Converter.Factory) {
     PROTOBUF("application/x-protobuf", ProtoConverterFactory.create()),
-    JSON("application/json", ProtoJsonConverterFactory)
+    JSON("application/json", JacksonConverterFactory.create(objectMapper))
 }
 
 enum class LogLevel(internal val impl: HttpLoggingInterceptor.Level) {

@@ -7,15 +7,15 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface Conference {
-    fun create(body: CreateConferenceRequest): CreateConferenceResponse
+    suspend fun create(body: CreateConferenceRequest): CreateConferenceResponse
 
-    fun join(body: JoinConferenceRequest): JoinConferenceResponse
+    suspend fun join(body: JoinConferenceRequest): JoinConferenceResponse
 
-    fun list(body: ConferenceListRequest): ConferenceListResponse
+    suspend fun list(body: ConferenceListRequest): ConferenceListResponse
 
-    fun createConnection(body: CreateConferenceRTCConnectionRequest): CreateConferenceRTCConnectionResponse
+    suspend fun createConnection(body: CreateConferenceRTCConnectionRequest): CreateConferenceRTCConnectionResponse
 
-    fun closeConnection(body: CloseConferenceRTCConnectionRequest): CloseConferenceRTCConnectionResponse
+    suspend fun closeConnection(body: CloseConferenceRTCConnectionRequest): CloseConferenceRTCConnectionResponse
 
-    fun leave(body: LeaveConferenceRequest): LeaveConferenceResponse
+    suspend fun leave(body: LeaveConferenceRequest): LeaveConferenceResponse
 }

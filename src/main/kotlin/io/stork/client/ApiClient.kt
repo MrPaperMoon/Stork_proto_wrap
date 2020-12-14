@@ -7,6 +7,11 @@ import com.tinder.scarlet.messageadapter.protobuf.ProtobufMessageAdapter
 import com.tinder.scarlet.retry.ExponentialBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.streamadapter.coroutines.CoroutinesStreamAdapterFactory
+import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.features.json.*
+import io.stork.client.ktor.ProtobufFeature
+import io.stork.client.ktor.StorkKtorResponseValidator
 import io.stork.client.module.*
 import io.stork.client.util.Signal
 import io.stork.client.util.map
@@ -14,7 +19,7 @@ import io.stork.client.util.toPublisher
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.protobuf.ProtoConverterFactory
+import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
@@ -33,24 +38,37 @@ interface ApiClient: SessionManager {
     companion object {
         operator fun invoke(config: ApiClientConfig = ApiClientConfig()): ApiClient {
             val sessionManager: SessionManager = SessionManagerImpl()
+            return ktorImpl(config, sessionManager)
+        }
 
-            val client = OkHttpClient.Builder()
-                    .addInterceptor(AuthInterceptor(sessionManager::sessionJwtToken))
-                    .addInterceptor(ContentTypeInterceptor(config.mediaType.contentType))
-                    .addInterceptor(HttpLoggingInterceptor().apply {
-                        level = config.logLevel.impl
-                    })
-                    .build()
-
+        private fun ktorImpl(config: ApiClientConfig, sessionManager: SessionManager): ApiClient {
+            val client = createOkHttp(config, sessionManager)
+            val ktorEngine = OkHttp.create {
+                preconfigured = client
+            }
             val websocket = webSocket(client, sessionManager, config.websocketUrl)
+            val ktorClient = HttpClient(ktorEngine) {
+                StorkKtorResponseValidator()
+                when (config.mediaType) {
+                    ApiMediaType.PROTOBUF -> install(ProtobufFeature)
+                    ApiMediaType.JSON -> install(JsonFeature) {
+                        serializer = JacksonSerializer(objectMapper)
+                    }
+                }
+            }
 
-            val retrofit = Retrofit.Builder()
-                    .baseUrl(config.apiBaseUrl)
-                    .client(client)
-                    .addConverterFactory(config.mediaType.converterFactory)
-                    .build()
+            return KtorApiClient(config, ktorClient, sessionManager, websocket)
+        }
 
-            return RetrofitApiClient(retrofit, sessionManager, websocket)
+        private fun createOkHttp(config: ApiClientConfig, sessionManager: SessionManager): OkHttpClient {
+            return OkHttpClient.Builder()
+                .addInterceptor(AuthInterceptor(sessionManager::sessionJwtToken))
+                .addInterceptor(ContentTypeInterceptor(config.mediaType.contentType))
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level = config.logLevel.impl
+                })
+                .pingInterval(30, TimeUnit.SECONDS)
+                .build()
         }
 
         @OptIn(ExperimentalTime::class)
@@ -58,22 +76,24 @@ interface ApiClient: SessionManager {
             val lifecycle = LifecycleRegistry()
 
             val signal: Signal<String?> = sessionManager.sessionTokenChangedSignal
-                    signal.map { when (it) {
-                        null -> Lifecycle.State.Stopped.WithReason()
-                        else -> Lifecycle.State.Started
-                    }}
-                    .toPublisher()
-                    .subscribe(lifecycle)
+            signal.map { when (it) {
+                null -> Lifecycle.State.Stopped.WithReason()
+                else -> Lifecycle.State.Started
+            }}
+                .toPublisher()
+                .subscribe(lifecycle)
 
             val scarlet = Scarlet.Builder()
-                    .webSocketFactory(client.newWebSocketFactory(websocketAddress))
-                    .lifecycle(lifecycle)
-                    .backoffStrategy(ExponentialBackoffStrategy(100, 30.seconds.toLongMilliseconds()))
-                    .addStreamAdapterFactory(CoroutinesStreamAdapterFactory())
-                    .addMessageAdapterFactory(ProtobufMessageAdapter.Factory())
-                    .build()
+                .webSocketFactory(client.newWebSocketFactory(websocketAddress))
+                .lifecycle(lifecycle)
+                .backoffStrategy(ExponentialBackoffStrategy(100, 30.seconds.toLongMilliseconds()))
+                .addStreamAdapterFactory(CoroutinesStreamAdapterFactory())
+                .addMessageAdapterFactory(ProtobufMessageAdapter.Factory())
+                .build()
             return scarlet.create()
 
         }
     }
+
+    val avatar: Avatar
 }

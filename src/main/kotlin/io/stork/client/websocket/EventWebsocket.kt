@@ -1,4 +1,4 @@
-package io.stork.client.retrofit.module
+package io.stork.client.websocket
 
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
