@@ -64,9 +64,6 @@ interface ApiClient: SessionManager {
             return OkHttpClient.Builder()
                 .addInterceptor(AuthInterceptor(sessionManager::sessionJwtToken))
                 .addInterceptor(ContentTypeInterceptor(config.mediaType.contentType))
-                .addInterceptor(HttpLoggingInterceptor().apply {
-                    level = config.logLevel.impl
-                })
                 .pingInterval(30, TimeUnit.SECONDS)
                 .build()
         }

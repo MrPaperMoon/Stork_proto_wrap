@@ -22,6 +22,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.slf4j:slf4j-api:1.7.30")
     api("com.google.protobuf:protobuf-java:3.14.0")
     api("com.google.protobuf:protobuf-java-util:3.14.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")

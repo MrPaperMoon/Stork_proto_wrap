@@ -28,6 +28,7 @@ import io.stork.proto.publicProfile.PublicProfileListResponse
 import io.stork.proto.session.*
 import io.stork.proto.workspace.*
 import okhttp3.MultipartBody
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -38,12 +39,29 @@ internal class KtorApiClient(
     private val sessionManager: SessionManager,
     override val websocket: EventWebsocket
 ): ApiClient, SessionManager by sessionManager {
+    private val log = LoggerFactory.getLogger("ApiClient")
+
     private suspend inline fun <reified T> makeApiCall(path: String, body: Message): T {
-        return client.post {
-            url(config.apiBaseUrl + path)
+        val url = config.apiBaseUrl + path
+
+        when (config.logLevel) {
+            LogLevel.BASIC -> log.info("$url <<<")
+            LogLevel.BODY -> log.info("$url <<< {}", body)
+        }
+
+        val response = client.post<HttpResponse> {
+            url(url)
             contentType(ContentType.parse(config.mediaType.contentType))
             this.body = body
         }
+
+        val result = response.receive<T>()
+        when (config.logLevel) {
+            LogLevel.BASIC -> log.info("$url >>> ${response.status}")
+            LogLevel.BODY -> log.info("$url >>> {}", result)
+        }
+
+        return result
     }
 
     override val account: Account = object: Account {

@@ -21,21 +21,19 @@ class ProtobufFeature private constructor(
     class Config {
         var serializer: ProtobufSerializer? = null
         var acceptContentTypes: Set<ContentType> = setOf(ContentType.parse("application/x-protobuf"))
-//        var receiveContentTypeMatchers:
     }
 
     companion object Feature : HttpClientFeature<ProtobufFeature.Config, ProtobufFeature> {
         override val key: AttributeKey<ProtobufFeature> = AttributeKey("Protobuf")
 
-        private fun defaultSerializer(): ProtobufSerializer = TODO()
+        private fun defaultSerializer(): ProtobufSerializer = DefaultProtobufSerializer()
 
         override fun prepare(block: Config.() -> Unit): ProtobufFeature {
             val config = Config().apply(block)
             val serializer = config.serializer ?: defaultSerializer()
             val allowedContentTypes = config.acceptContentTypes.toSet()
-//            val receiveContentTypeMatchers = config.receiveContentTypeMatchers
 
-            return ProtobufFeature(serializer, allowedContentTypes)//, receiveContentTypeMatchers)
+            return ProtobufFeature(serializer, allowedContentTypes)
         }
 
         override fun install(feature: ProtobufFeature, scope: HttpClient) {

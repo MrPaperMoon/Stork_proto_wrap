@@ -20,6 +20,5 @@ enum class ApiMediaType(internal val contentType: String, internal val converter
 enum class LogLevel(internal val impl: HttpLoggingInterceptor.Level) {
     NONE(HttpLoggingInterceptor.Level.NONE),
     BASIC(HttpLoggingInterceptor.Level.BASIC),
-    HEADERS(HttpLoggingInterceptor.Level.HEADERS),
     BODY(HttpLoggingInterceptor.Level.BODY)
 }
