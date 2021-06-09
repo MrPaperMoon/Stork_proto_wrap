@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
+import io.stork.client.ktor.throwIfNotOk
 import io.stork.client.module.*
 import io.stork.client.module.Account
 import io.stork.client.module.Auth
@@ -55,7 +56,7 @@ internal class KtorApiClient(
             this.body = body
         }
 
-        val result = response.receive<T>()
+        val result = response.throwIfNotOk().receive<T>()
         when (config.logLevel) {
             LogLevel.BASIC -> log.info("$url >>> ${response.status}")
             LogLevel.BODY -> log.info("$url >>> {}", result)

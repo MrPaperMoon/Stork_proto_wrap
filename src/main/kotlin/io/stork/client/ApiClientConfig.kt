@@ -3,8 +3,8 @@ package io.stork.client
 import okhttp3.logging.HttpLoggingInterceptor
 
 data class ApiClientConfig(
-    val apiBaseUrl: String = "https://stork.team/api/",
-    val websocketUrl: String = "wss://stork.team/ws/event",
+    val apiBaseUrl: String = "https://stork.ai/api/",
+    val websocketUrl: String = "wss://stork.ai/ws/event",
     val mediaType: ApiMediaType = ApiMediaType.PROTOBUF,
     val logLevel: LogLevel = LogLevel.NONE
 )

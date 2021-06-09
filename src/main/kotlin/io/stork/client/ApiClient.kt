@@ -66,7 +66,6 @@ interface ApiClient: SessionManager {
                 .build()
         }
 
-        @OptIn(ExperimentalTime::class)
         private fun webSocket(client: OkHttpClient, sessionManager: SessionManager, websocketAddress: String): EventWebsocket {
             val lifecycle = LifecycleRegistry()
 
@@ -81,7 +80,7 @@ interface ApiClient: SessionManager {
             val scarlet = Scarlet.Builder()
                 .webSocketFactory(client.newWebSocketFactory(websocketAddress))
                 .lifecycle(lifecycle)
-                .backoffStrategy(ExponentialBackoffStrategy(100, 30.seconds.toLongMilliseconds()))
+                .backoffStrategy(ExponentialBackoffStrategy(100, 30*1000))
                 .addStreamAdapterFactory(CoroutinesStreamAdapterFactory())
                 .addMessageAdapterFactory(ProtobufMessageAdapter.Factory())
                 .build()
