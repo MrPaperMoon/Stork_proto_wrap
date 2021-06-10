@@ -25,9 +25,13 @@ import kotlin.time.seconds
 interface ApiClient: SessionManager {
     val account: Account
     val auth: Auth
+    val avatar: Avatar
+    val chat: Chat
+    val chatMessage: ChatMessage
     val conference: Conference
     val member: Member
     val publicProfile: PublicProfile
+    val recordings: Recordings
     val rtc: RTC
     val session: Session
     val workspace: Workspace
@@ -89,5 +93,4 @@ interface ApiClient: SessionManager {
         }
     }
 
-    val avatar: Avatar
 }

@@ -11,6 +11,8 @@ import io.stork.client.ktor.throwIfNotOk
 import io.stork.client.module.*
 import io.stork.client.module.Account
 import io.stork.client.module.Auth
+import io.stork.client.module.Chat
+import io.stork.client.module.ChatMessage
 import io.stork.client.module.Conference
 import io.stork.client.module.RTC
 import io.stork.client.module.Session
@@ -22,6 +24,12 @@ import io.stork.proto.avatar.SetPrimaryAvatarRequest
 import io.stork.proto.avatar.SetPrimaryAvatarResponse
 import io.stork.proto.calls.conference.*
 import io.stork.proto.calls.rtc.*
+import io.stork.proto.chat.*
+import io.stork.proto.chat.message.*
+import io.stork.proto.client.recordings.recording.RecordingListRequest
+import io.stork.proto.client.recordings.recording.RecordingListResponse
+import io.stork.proto.client.recordings.recording.UpdateRecordingTitleRequest
+import io.stork.proto.client.recordings.recording.UpdateRecordingTitleResponse
 import io.stork.proto.member.MemberListRequest
 import io.stork.proto.member.MemberListResponse
 import io.stork.proto.publicProfile.PublicProfileListRequest
@@ -127,6 +135,62 @@ internal class KtorApiClient(
             return makeApiCall("avatar.setPrimary", body)
         }
     }
+
+    override val chat: Chat = object: Chat {
+        override suspend fun get(body: GetChatRequest): GetChatResponse {
+            return makeApiCall("chat.get", body)
+        }
+
+        override suspend fun listRecentChats(body: ListRecentChatsRequest): ListRecentChatsResponse {
+            return makeApiCall("chat.recent.list", body)
+        }
+
+        override suspend fun create(body: CreateChatRequest): CreateChatResponse {
+            return makeApiCall("chat.create", body)
+        }
+
+        override suspend fun update(body: UpdateChatRequest): UpdateChatResponse {
+            return makeApiCall("chat.update", body)
+        }
+
+        override suspend fun join(body: JoinChatRequest): JoinChatResponse {
+            return makeApiCall("chat.join", body)
+        }
+
+        override suspend fun leave(body: LeaveChatRequest): LeaveChatResponse {
+            return makeApiCall("chat.leave", body)
+        }
+
+        override suspend fun archive(body: ArchiveChatRequest): ArchiveChatResponse {
+            return makeApiCall("chat.archive", body)
+        }
+
+        override suspend fun markAsRead(body: MarkChatAsReadRequest): MarkChatAsReadResponse {
+            return makeApiCall("chat.markAsRead", body)
+        }
+
+        override suspend fun search(body: SearchChatRequest): SearchChatResponse {
+            return makeApiCall("chat.search", body)
+        }
+    }
+    override val chatMessage: ChatMessage = object: ChatMessage {
+        override suspend fun get(body: GetChatMessagesRequest): GetChatMessagesResponse {
+            return makeApiCall("chat.message.get", body)
+        }
+
+        override suspend fun send(body: SendChatMessageRequest): SendChatMessageResponse {
+            return makeApiCall("chat.message.send", body)
+        }
+
+        override suspend fun edit(body: EditChatMessageRequest): EditChatMessageResponse {
+            return makeApiCall("chat.message.edit", body)
+        }
+
+        override suspend fun toggleReaction(body: ToggleChatMessageReactionRequest): ToggleChatMessageReactionResponse {
+            return makeApiCall("chat.message.toggleReaction", body)
+        }
+
+    }
     override val conference: Conference = object: Conference {
         override suspend fun create(body: CreateConferenceRequest): CreateConferenceResponse {
             return makeApiCall("conference.create", body)
@@ -164,6 +228,16 @@ internal class KtorApiClient(
     override val publicProfile: PublicProfile = object: PublicProfile {
         override suspend fun list(body: PublicProfileListRequest): PublicProfileListResponse {
             return makeApiCall("publicProfile.list", body)
+        }
+    }
+
+    override val recordings: Recordings = object: Recordings {
+        override suspend fun list(body: RecordingListRequest): RecordingListResponse {
+            return makeApiCall("recording.list", body)
+        }
+
+        override suspend fun updateTitle(body: UpdateRecordingTitleRequest): UpdateRecordingTitleResponse {
+            return makeApiCall("recording.updateRecordingTitle", body)
         }
     }
 
