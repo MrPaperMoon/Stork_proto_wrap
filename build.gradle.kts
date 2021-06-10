@@ -20,11 +20,15 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     }
 }
 
+val protobufVersion = "3.12.4"
+
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
+
     implementation("org.slf4j:slf4j-api:1.7.30")
-    api("com.google.protobuf:protobuf-java:3.14.0")
-    api("com.google.protobuf:protobuf-java-util:3.14.0")
+    api("com.google.protobuf:protobuf-java:$protobufVersion")
+    api("com.google.protobuf:protobuf-java-util:$protobufVersion")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
     implementation(platform("io.ktor:ktor-bom:1.4.3"))
@@ -58,7 +62,7 @@ tasks.withType<KotlinCompile>().configureEach {
 protobuf.protobuf.apply {
     // Configure the protoc executable
     protoc {
-        artifact = "com.google.protobuf:protoc:3.14.0"
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
 }
 
