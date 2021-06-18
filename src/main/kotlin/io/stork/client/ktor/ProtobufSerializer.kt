@@ -7,8 +7,8 @@ import io.ktor.utils.io.core.*
 import kotlin.reflect.KClass
 
 interface ProtobufSerializer {
-    fun write(payload: Message, contentType: ContentType): OutgoingContent
-    fun write(data: Message): OutgoingContent = write(data, ContentType.Application.ProtoBuf)
+    fun write(payload: Message, contentType: ContentType): ByteArrayContent
+    fun write(data: Message): ByteArrayContent = write(data, ContentType.Application.ProtoBuf)
 
     fun read(type: KClass<out Message>, body: Input): Message
 }

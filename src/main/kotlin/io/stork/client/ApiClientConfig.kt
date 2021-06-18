@@ -3,11 +3,24 @@ package io.stork.client
 import okhttp3.logging.HttpLoggingInterceptor
 
 data class ApiClientConfig(
-    val apiBaseUrl: String = "https://stork.ai/api/",
-    val websocketUrl: String = "wss://stork.ai/ws/event",
+    val domainName: String = "stork.ai",
+    val useSsl: Boolean = true,
     val mediaType: ApiMediaType = ApiMediaType.PROTOBUF,
     val logLevel: LogLevel = LogLevel.NONE
-)
+) {
+    private val httpProtocol = when {
+        useSsl -> "https"
+        else -> "http"
+    }
+
+    private val wsProtocol = when {
+        useSsl -> "wss"
+        else -> "ws"
+    }
+
+    val apiBaseUrl: String = "$httpProtocol://$domainName/api"
+    val websocketUrl: String = "$wsProtocol://$domainName/ws/event"
+}
 
 enum class ApiMediaType(internal val contentType: String) {
     PROTOBUF("application/x-protobuf"),

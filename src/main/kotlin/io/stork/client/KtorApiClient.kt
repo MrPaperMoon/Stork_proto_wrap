@@ -4,10 +4,12 @@ import com.google.protobuf.Message
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
-import io.stork.client.ktor.throwIfNotOk
+import io.stork.client.ktor.DefaultProtobufSerializer
+import io.stork.client.ktor.getResult
 import io.stork.client.module.*
 import io.stork.client.module.Account
 import io.stork.client.module.Auth
@@ -30,6 +32,7 @@ import io.stork.proto.client.recordings.recording.RecordingListRequest
 import io.stork.proto.client.recordings.recording.RecordingListResponse
 import io.stork.proto.client.recordings.recording.UpdateRecordingTitleRequest
 import io.stork.proto.client.recordings.recording.UpdateRecordingTitleResponse
+import io.stork.proto.files.file.*
 import io.stork.proto.member.MemberListRequest
 import io.stork.proto.member.MemberListResponse
 import io.stork.proto.publicProfile.PublicProfileListRequest
@@ -39,7 +42,6 @@ import io.stork.proto.workspace.*
 import okhttp3.MultipartBody
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 
 internal class KtorApiClient(
@@ -50,13 +52,30 @@ internal class KtorApiClient(
 ): ApiClient, SessionManager by sessionManager {
     private val log = LoggerFactory.getLogger("ApiClient")
 
-    private suspend inline fun <reified T> makeApiCall(path: String, body: Message): T {
-        val url = config.apiBaseUrl + path
+    private fun apiCallUrl(path: String): String = config.apiBaseUrl + "/" + path
 
+    private fun logRequest(url: String, body: Any? = null) {
         when (config.logLevel) {
+            LogLevel.NONE -> {}
             LogLevel.BASIC -> log.info("$url <<<")
-            LogLevel.BODY -> log.info("$url <<< {}", body)
+            LogLevel.BODY -> log.info("$url <<< {}", body ?: "")
         }
+    }
+
+    private suspend inline fun <reified T: Any> getAndLogResult(response: HttpResponse): Result<T> {
+        val result = response.getResult<T>()
+        when (config.logLevel) {
+            LogLevel.BASIC -> log.info("{} >>> {}", response.call.request.url, response.status)
+            LogLevel.BODY -> log.info("{} >>> {} {}", response.call.request.url, response.status, result)
+        }
+
+        return result
+    }
+
+    private suspend inline fun <reified T: Any> makeApiCall(path: String, body: Message): T {
+        val url = apiCallUrl(path)
+
+        logRequest(url, body)
 
         val response = client.post<HttpResponse> {
             url(url)
@@ -64,14 +83,25 @@ internal class KtorApiClient(
             this.body = body
         }
 
-        val result = response.throwIfNotOk().receive<T>()
-        when (config.logLevel) {
-            LogLevel.BASIC -> log.info("$url >>> ${response.status}")
-            LogLevel.BODY -> log.info("$url >>> {}", result)
+        val result = getAndLogResult<T>(response)
+        return result.getOrThrow()
+    }
+
+    private suspend inline fun <reified T: Any> makeApiCallWithoutBody(path: String, method: HttpMethod = HttpMethod.Get): T {
+        val url = apiCallUrl(path)
+
+        logRequest(url)
+
+        val response = client.request<HttpResponse> {
+            url(url)
+            contentType(ContentType.parse(config.mediaType.contentType))
+            this.method = method
         }
 
-        return result
+        val result = getAndLogResult<T>(response)
+        return result.getOrThrow()
     }
+
 
     override val account: Account = object: Account {
         override suspend fun list(body: AccountsListRequest): AccountsListResponse =
@@ -119,8 +149,8 @@ internal class KtorApiClient(
             TODO()
         }
 
-        override suspend fun downloadAvatar(avatarId: String, size: Int, targetFile: File): File {
-            return client.get<HttpStatement>("avatar.download/$avatarId/$size").execute { response: HttpResponse ->
+        override suspend fun downloadAvatar(avatarId: String, size: AvatarSize, targetFile: File): File {
+            return client.get<HttpStatement>("avatar.download/$avatarId/${size.raw}").execute { response: HttpResponse ->
                 val downloadChannel = response.receive<ByteReadChannel>()
                 FileOutputStream(targetFile).use { fileOutput ->
                     downloadChannel.read {
@@ -133,6 +163,10 @@ internal class KtorApiClient(
 
         override suspend fun setPrimary(body: SetPrimaryAvatarRequest): SetPrimaryAvatarResponse {
             return makeApiCall("avatar.setPrimary", body)
+        }
+
+        override fun getAvatarUrl(avatarId: String, size: AvatarSize): String {
+            return "${config.apiBaseUrl}/avatar.download/${avatarId}/${size.raw}"
         }
     }
 
@@ -218,11 +252,54 @@ internal class KtorApiClient(
 
     }
 
+    override val file: io.stork.client.module.File = object: io.stork.client.module.File {
+        override suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): GetFilePreSignedUrlResponse {
+            return makeApiCall("file.getPreSignedUrl", body)
+        }
+
+        override suspend fun startMultipart(body: UploadFileRequest): StartMultipartFileUploadResponse {
+            return makeApiCall("file.startMultipart", body)
+        }
+
+        override suspend fun finishPart(body: FinishPartUploadRequest): FinishPartUploadResponse {
+            return makeApiCall("file.finishPart", body)
+        }
+
+        override suspend fun finishMultipart(body: FinishMultipartFileUploadRequest): FinishMultipartFileUploadResponse {
+            return makeApiCall("file.finishMultipart", body)
+        }
+
+        override suspend fun uploadFile(
+            body: UploadFileRequest,
+            content: File
+        ): UploadFileResponse {
+            val url = apiCallUrl("file.directUpload")
+            logRequest(url)
+            val response: HttpResponse = client.submitFormWithBinaryData(
+                url = url,
+                formData = formData {
+                    append("uploadFileRequest", DefaultProtobufSerializer.write(body).bytes())
+                    append("content", content.readBytes(), Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=${content.name}")
+                    })
+                }
+            )
+            return getAndLogResult<UploadFileResponse>(response).getOrThrow()
+        }
+
+        override suspend fun getFileMetadata(fileId: String): GetFileMetadataResponse {
+            return makeApiCallWithoutBody("file.metadata/$fileId", HttpMethod.Get)
+        }
+
+        override suspend fun deleteFile(fileId: String) {
+            return makeApiCallWithoutBody("file.delete/$fileId", HttpMethod.Delete)
+        }
+    }
+
     override val member: Member = object: Member {
         override suspend fun list(body: MemberListRequest): MemberListResponse {
             return makeApiCall("member.list", body)
         }
-
     }
 
     override val publicProfile: PublicProfile = object: PublicProfile {

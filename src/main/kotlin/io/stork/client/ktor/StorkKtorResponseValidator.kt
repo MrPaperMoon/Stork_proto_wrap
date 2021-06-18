@@ -4,13 +4,11 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.statement.*
+import io.stork.client.Result
 import io.stork.client.exceptions.AuthenticationException
 import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
 import io.stork.proto.error.UnhandledError
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(KtorApiClientSerializer::class.java)
 
 fun HttpClientConfig<*>.StorkKtorResponseValidator() {
     HttpResponseValidator {
@@ -18,40 +16,23 @@ fun HttpClientConfig<*>.StorkKtorResponseValidator() {
     }
 }
 
-suspend fun HttpResponse.throwIfNotOk(): HttpResponse {
-    val failure = validate()
-    if (failure != null) {
-        throw failure
-    } else {
-        return this
-    }
-}
-
-private suspend fun HttpResponse.validate(): Exception? {
+suspend inline fun <reified T: Any> HttpResponse.getResult(): Result<T> {
     try {
         return when (status.value) {
-            200 -> null
-            AuthenticationException.CODE -> AuthenticationException(receive())
-            ValidationException.CODE -> ValidationException(receive())
-            UnknownException.CODE -> UnknownException(receive())
-            else -> UnknownException(asUnhandledError())
+            200 -> Result.Success(receive())
+            AuthenticationException.CODE -> Result.AuthenticationError(receive())
+            ValidationException.CODE -> Result.ValidationError(receive())
+            UnknownException.CODE -> Result.UnknownError(receive())
+            else -> Result.UnknownError(asUnhandledError())
         }
     } catch (ex: Exception) {
-        log.error("Failed to receive correct body: ", ex)
-        return UnknownException(ex.asUnhandledError())
+        return Result.fromException(ex)
     }
 }
 
-private fun HttpResponse.asUnhandledError(): UnhandledError {
+fun HttpResponse.asUnhandledError(): UnhandledError {
     return UnhandledError.newBuilder()
         .setName("Code ${status.value}")
         .setMessage(status.description)
-        .build()
-}
-
-private fun Exception.asUnhandledError(): UnhandledError {
-    return UnhandledError.newBuilder()
-        .setName(javaClass.name)
-        .setMessage(message + ":\n" + stackTraceToString())
         .build()
 }

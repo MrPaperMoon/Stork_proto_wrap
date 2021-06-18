@@ -9,10 +9,10 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 
-class DefaultProtobufSerializer : ProtobufSerializer {
+object DefaultProtobufSerializer : ProtobufSerializer {
     private val builderCache: MutableMap<Class<*>, Method> = ConcurrentHashMap<Class<*>, Method>()
 
-    override fun write(payload: Message, contentType: ContentType): OutgoingContent {
+    override fun write(payload: Message, contentType: ContentType): ByteArrayContent {
         return ByteArrayContent(payload.toByteArray(), contentType)
     }
 

@@ -29,6 +29,7 @@ interface ApiClient: SessionManager {
     val chat: Chat
     val chatMessage: ChatMessage
     val conference: Conference
+    val file: File
     val member: Member
     val publicProfile: PublicProfile
     val recordings: Recordings

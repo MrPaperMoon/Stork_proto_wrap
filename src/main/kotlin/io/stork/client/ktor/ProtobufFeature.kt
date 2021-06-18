@@ -26,7 +26,7 @@ class ProtobufFeature private constructor(
     companion object Feature : HttpClientFeature<ProtobufFeature.Config, ProtobufFeature> {
         override val key: AttributeKey<ProtobufFeature> = AttributeKey("Protobuf")
 
-        private fun defaultSerializer(): ProtobufSerializer = DefaultProtobufSerializer()
+        private fun defaultSerializer(): ProtobufSerializer = DefaultProtobufSerializer
 
         override fun prepare(block: Config.() -> Unit): ProtobufFeature {
             val config = Config().apply(block)
