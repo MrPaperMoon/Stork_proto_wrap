@@ -9,9 +9,10 @@ interface Conference {
 
     suspend fun list(body: ConferenceListRequest): ConferenceListResponse
 
-    suspend fun createConnection(body: CreateConferenceRTCConnectionRequest): CreateConferenceRTCConnectionResponse
-
-    suspend fun closeConnection(body: CloseConferenceRTCConnectionRequest): CloseConferenceRTCConnectionResponse
-
     suspend fun leave(body: LeaveConferenceRequest): LeaveConferenceResponse
+
+    suspend fun inviteToConference(body: InviteToConferenceRequest): InviteToConferenceResponse
+    suspend fun watercoolerUpdateScope(body: ConferenceWatercoolerUpdateScopeRequest): ConferenceWatercoolerUpdateScopeResponse
+    suspend fun conferenceInfo(body: ConferenceInfoRequest): ConferenceInfoResponse
+    suspend fun conferenceVoiceChannelUpdateMute(body: ConferenceVoiceChannelUpdateMuteRequest): ConferenceVoiceChannelUpdateMuteResponse
 }

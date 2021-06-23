@@ -238,16 +238,24 @@ internal class KtorApiClient(
             return makeApiCall("conference.list", body)
         }
 
-        override suspend fun createConnection(body: CreateConferenceRTCConnectionRequest): CreateConferenceRTCConnectionResponse {
-            return makeApiCall("conference.createConnection", body)
-        }
-
-        override suspend fun closeConnection(body: CloseConferenceRTCConnectionRequest): CloseConferenceRTCConnectionResponse {
-            return makeApiCall("conference.closeConnection", body)
-        }
-
         override suspend fun leave(body: LeaveConferenceRequest): LeaveConferenceResponse {
             return makeApiCall("conference.leave", body)
+        }
+
+        override suspend fun inviteToConference(body: InviteToConferenceRequest): InviteToConferenceResponse {
+            return makeApiCall("conference.invite", body)
+        }
+
+        override suspend fun watercoolerUpdateScope(body: ConferenceWatercoolerUpdateScopeRequest): ConferenceWatercoolerUpdateScopeResponse {
+            return makeApiCall("conference.watercooler.updateScope", body)
+        }
+
+        override suspend fun conferenceInfo(body: ConferenceInfoRequest): ConferenceInfoResponse {
+            return makeApiCall("conference.info", body)
+        }
+
+        override suspend fun conferenceVoiceChannelUpdateMute(body: ConferenceVoiceChannelUpdateMuteRequest): ConferenceVoiceChannelUpdateMuteResponse {
+            return makeApiCall("conference.voiceChannel.updateMute", body)
         }
 
     }
@@ -319,8 +327,8 @@ internal class KtorApiClient(
     }
 
     override val rtc: RTC = object: RTC {
-        override suspend fun createOffer(body: CreateRTCConnectionOfferRequest): CreateRTCConnectionOfferResponse {
-            return makeApiCall("rtc.createOffer", body)
+        override suspend fun negotiateConnection(body: RTCConnectionNegotiateRequest): RTCConnectionNegotiateResponse {
+            return makeApiCall("rtc.negotiate", body)
         }
 
         override suspend fun addIceCandidates(body: AddRTCIceCandidatesRequest): AddRTCIceCandidatesResponse {
