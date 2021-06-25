@@ -16,8 +16,8 @@ object DefaultProtobufSerializer : ProtobufSerializer {
         return ByteArrayContent(payload.toByteArray(), contentType)
     }
 
-    override fun read(type: KClass<out Message>, body: Input): Message {
-        return body.readBytes().decodeAsProto(type)
+    override fun <T : Message> read(type: KClass<out T>, bytes: ByteArray): T {
+        return bytes.decodeAsProto(type)
     }
 
 

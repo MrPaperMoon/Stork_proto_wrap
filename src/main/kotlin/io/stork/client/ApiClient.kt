@@ -10,6 +10,8 @@ import com.tinder.streamadapter.coroutines.CoroutinesStreamAdapterFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.features.json.*
+import io.ktor.client.features.websocket.*
+import io.stork.client.ktor.KtorWebSocket
 import io.stork.client.ktor.ProtobufFeature
 import io.stork.client.ktor.StorkKtorResponseValidator
 import io.stork.client.module.*
@@ -49,8 +51,8 @@ interface ApiClient: SessionManager {
             val ktorEngine = OkHttp.create {
                 preconfigured = client
             }
-            val websocket = webSocket(client, sessionManager, config.websocketUrl)
             val ktorClient = HttpClient(ktorEngine) {
+                install(WebSockets)
                 StorkKtorResponseValidator()
                 when (config.mediaType) {
                     ApiMediaType.PROTOBUF -> install(ProtobufFeature)
@@ -59,7 +61,7 @@ interface ApiClient: SessionManager {
                     }
                 }
             }
-
+            val websocket = KtorWebSocket(config, ktorClient)
             return KtorApiClient(config, ktorClient, sessionManager, websocket)
         }
 
@@ -70,28 +72,5 @@ interface ApiClient: SessionManager {
                 .pingInterval(30, TimeUnit.SECONDS)
                 .build()
         }
-
-        private fun webSocket(client: OkHttpClient, sessionManager: SessionManager, websocketAddress: String): EventWebsocket {
-            val lifecycle = LifecycleRegistry()
-
-            val signal: Signal<String?> = sessionManager.sessionTokenChangedSignal
-            signal.map { when (it) {
-                null -> Lifecycle.State.Stopped.WithReason()
-                else -> Lifecycle.State.Started
-            }}
-                .toPublisher()
-                .subscribe(lifecycle)
-
-            val scarlet = Scarlet.Builder()
-                .webSocketFactory(client.newWebSocketFactory(websocketAddress))
-                .lifecycle(lifecycle)
-                .backoffStrategy(ExponentialBackoffStrategy(100, 30*1000))
-                .addStreamAdapterFactory(CoroutinesStreamAdapterFactory())
-                .addMessageAdapterFactory(ProtobufMessageAdapter.Factory())
-                .build()
-            return scarlet.create()
-
-        }
     }
-
 }

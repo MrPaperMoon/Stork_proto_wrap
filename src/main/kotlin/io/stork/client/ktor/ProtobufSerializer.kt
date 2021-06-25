@@ -10,5 +10,8 @@ interface ProtobufSerializer {
     fun write(payload: Message, contentType: ContentType): ByteArrayContent
     fun write(data: Message): ByteArrayContent = write(data, ContentType.Application.ProtoBuf)
 
-    fun read(type: KClass<out Message>, body: Input): Message
+    fun read(type: KClass<out Message>, body: Input): Message {
+        return read(type, body.readBytes())
+    }
+    fun <T : Message> read(type: KClass<out T>, bytes: ByteArray): T
 }
