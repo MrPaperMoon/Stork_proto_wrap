@@ -52,7 +52,9 @@ interface ApiClient: SessionManager {
                 preconfigured = client
             }
             val ktorClient = HttpClient(ktorEngine) {
-                install(WebSockets)
+                install(WebSockets) {
+                    pingInterval = 30_000
+                }
                 StorkKtorResponseValidator()
                 when (config.mediaType) {
                     ApiMediaType.PROTOBUF -> install(ProtobufFeature)

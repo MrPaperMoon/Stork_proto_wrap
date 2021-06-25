@@ -10,11 +10,11 @@ import io.stork.proto.calls.conference.ConferenceEvent
 import io.stork.proto.calls.rtc.RTCEvent
 import io.stork.proto.websocket.EchoMessage
 import io.stork.proto.websocket.WebsocketEvent
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
+import org.slf4j.LoggerFactory
 
 class KtorWebSocket(
     private val config: ApiClientConfig,
@@ -22,6 +22,7 @@ class KtorWebSocket(
     private val serializer: ProtobufSerializer = DefaultProtobufSerializer
 ): EventWebsocket {
     private val scope = GlobalScope
+    private val log = LoggerFactory.getLogger("WS")
 
     private val webSocketConnection: Flow<WebSocketSession> = flow {
         emit(client.webSocketSession {
@@ -35,15 +36,16 @@ class KtorWebSocket(
         while (context.isActive) {
             val frame = webSocket.incoming.receive()
             val event = serializer.read(WebsocketEvent::class, frame.readBytes())
+            log.info("--> $event")
             emit(event)
         }
     }
 
-    override fun conferenceEvent(): Flow<ConferenceEvent> = webSocketEvent.mapNotNull {
+    override fun conferenceEvent(): Flow<ConferenceEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.CONFERENCE_EVENT) {
         it.conferenceEvent
     }
 
-    override fun webRTCEvent(): Flow<RTCEvent> = webSocketEvent.mapNotNull {
+    override fun webRTCEvent(): Flow<RTCEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.RTC_EVENT) {
         it.rtcEvent
     }
 
@@ -55,5 +57,13 @@ class KtorWebSocket(
 
     override fun receiveEcho(): Flow<EchoMessage> {
         TODO("Not yet implemented")
+    }
+
+    private fun <T> Flow<WebsocketEvent>.getEvents(type: WebsocketEvent.EventCase, selector: (WebsocketEvent) -> T): Flow<T> {
+        return mapNotNull {
+            if (it.eventCase == type) {
+                selector(it)
+            } else null
+        }
     }
 }
