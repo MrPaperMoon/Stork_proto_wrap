@@ -24,13 +24,16 @@ class KtorWebSocket(
     private val scope = GlobalScope
     private val log = LoggerFactory.getLogger("WS")
 
-    private val webSocketConnection: Flow<WebSocketSession> = flow {
-        emit(client.webSocketSession {
+    private val webSocketConnection: SharedFlow<WebSocketSession> = flow {
+        log.info("<-- establishing session")
+        val session = client.webSocketSession {
             url(config.websocketUrl)
-        })
+        }
+        log.info("<-- session established -->")
+        emit(session)
     }.shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    private val webSocketEvent: Flow<WebsocketEvent> = flow {
+    private val webSocketEvent: SharedFlow<WebsocketEvent> = flow {
         val webSocket = webSocketConnection.first()
         val context = currentCoroutineContext()
         while (context.isActive) {
@@ -39,13 +42,15 @@ class KtorWebSocket(
             log.info("--> $event")
             emit(event)
         }
-    }
+    }.shareIn(scope, SharingStarted.WhileSubscribed(), replay = 0)
 
-    override fun conferenceEvent(): Flow<ConferenceEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.CONFERENCE_EVENT) {
+    override val allEvents: Flow<WebsocketEvent> = webSocketEvent
+
+    override val conferenceEvents: Flow<ConferenceEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.CONFERENCE_EVENT) {
         it.conferenceEvent
     }
 
-    override fun webRTCEvent(): Flow<RTCEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.RTC_EVENT) {
+    override val webRTCEvents: Flow<RTCEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.RTC_EVENT) {
         it.rtcEvent
     }
 
