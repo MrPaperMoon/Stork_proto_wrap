@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface EventWebsocket {
 
     suspend fun sendEcho(echo: EchoMessage): Boolean
-    fun receiveEcho(): Flow<EchoMessage>
+    val receiveEcho: Flow<EchoMessage>
 
     val allEvents: Flow<WebsocketEvent>
     val webRTCEvents: Flow<RTCEvent>

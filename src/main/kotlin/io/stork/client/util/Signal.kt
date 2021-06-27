@@ -1,7 +1,9 @@
 package io.stork.client.util
 
-import org.reactivestreams.Publisher
-import org.reactivestreams.Subscription
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 interface Signal<T> {
     fun connect(listener: Listener<T>): Connection
@@ -21,16 +23,15 @@ fun <T> Signal<T>.filter(filter: (T) -> Boolean): Signal<T> = object: Signal<T> 
     }
 }
 
-fun <T> Signal<T>.toPublisher(): Publisher<T> = Publisher<T> { subscriber ->
-    subscriber.onSubscribe(SignalSubscription(this@toPublisher.connect(subscriber::onNext)))
-}
-
-private class SignalSubscription(private val connection: Connection): Subscription {
-    override fun cancel() {
-        connection.dispose()
+fun <T> Signal<T>.toFlow(): Flow<T> = callbackFlow<T> {
+    val listener = object: Listener<T> {
+        override fun invoke(p1: T) {
+            sendBlocking(p1)
+        }
     }
 
-    override fun request(n: Long) {
-        // noop -- backpressure not supported
+    val connection = connect(listener)
+    awaitClose {
+        connection.dispose()
     }
 }

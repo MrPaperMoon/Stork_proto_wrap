@@ -1,4 +1,4 @@
-package io.stork.client
+package io.stork.client.okhttp
 
 import okhttp3.Interceptor
 import okhttp3.Response

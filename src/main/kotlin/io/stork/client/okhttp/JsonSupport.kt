@@ -1,4 +1,4 @@
-package io.stork.client
+package io.stork.client.okhttp
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer

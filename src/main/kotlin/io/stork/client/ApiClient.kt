@@ -1,12 +1,5 @@
 package io.stork.client;
 
-import com.tinder.scarlet.Lifecycle
-import com.tinder.scarlet.Scarlet
-import com.tinder.scarlet.lifecycle.LifecycleRegistry
-import com.tinder.scarlet.messageadapter.protobuf.ProtobufMessageAdapter
-import com.tinder.scarlet.retry.ExponentialBackoffStrategy
-import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
-import com.tinder.streamadapter.coroutines.CoroutinesStreamAdapterFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.features.json.*
@@ -15,13 +8,11 @@ import io.stork.client.ktor.KtorWebSocket
 import io.stork.client.ktor.ProtobufFeature
 import io.stork.client.ktor.StorkKtorResponseValidator
 import io.stork.client.module.*
-import io.stork.client.util.Signal
-import io.stork.client.util.map
-import io.stork.client.util.toPublisher
+import io.stork.client.okhttp.AuthInterceptor
+import io.stork.client.okhttp.ContentTypeInterceptor
+import io.stork.client.okhttp.objectMapper
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 
 interface ApiClient: SessionManager {

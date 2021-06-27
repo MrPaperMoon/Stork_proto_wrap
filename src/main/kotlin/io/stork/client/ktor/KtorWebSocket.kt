@@ -1,20 +1,23 @@
 package io.stork.client.ktor
 
+import com.google.protobuf.InvalidProtocolBufferException
+import com.google.protobuf.Message
 import io.ktor.client.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.cio.websocket.*
 import io.stork.client.ApiClientConfig
+import io.stork.client.LogLevel
 import io.stork.client.module.EventWebsocket
+import io.stork.client.util.repeat
 import io.stork.proto.calls.conference.ConferenceEvent
 import io.stork.proto.calls.rtc.RTCEvent
 import io.stork.proto.websocket.EchoMessage
 import io.stork.proto.websocket.WebsocketEvent
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.isActive
 import org.slf4j.LoggerFactory
+import java.io.IOException
 
 class KtorWebSocket(
     private val config: ApiClientConfig,
@@ -25,32 +28,35 @@ class KtorWebSocket(
     private val log = LoggerFactory.getLogger("WS")
 
     private val webSocketConnection: SharedFlow<WebSocketSession> = flow {
-        log.info("<-- establishing session")
-        val session = client.webSocketSession {
-            url(config.websocketUrl)
+        var connection: WebSocketSession? = null
+        while (connection == null || !connection.isActive) {
+            connection = newWebSocketSession()
+            if (connection != null) {
+                emit(connection)
+                while (connection.isActive) {
+                    delay(1_000)
+                }
+            }
         }
-        log.info("<-- session established -->")
-        emit(session)
     }.shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    private val webSocketEvent: SharedFlow<WebsocketEvent> = flow {
-        val webSocket = webSocketConnection.first()
-        val context = currentCoroutineContext()
-        while (context.isActive) {
-            val frame = webSocket.incoming.receive()
-            val event = serializer.read(WebsocketEvent::class, frame.readBytes())
+    private val webSocketFrames: SharedFlow<Frame> = webSocketConnection.flatMapConcat { it.receivedFrames }
+        .repeat()
+        .shareIn(scope, SharingStarted.WhileSubscribed(), replay = 0)
+
+    override val allEvents: Flow<WebsocketEvent> = webSocketFrames.mapNotNull {
+        val event = it.tryRead<WebsocketEvent>()
+        if (event != null && config.logLevel == LogLevel.BODY) {
             log.info("--> $event")
-            emit(event)
         }
-    }.shareIn(scope, SharingStarted.WhileSubscribed(), replay = 0)
+        event
+    }
 
-    override val allEvents: Flow<WebsocketEvent> = webSocketEvent
-
-    override val conferenceEvents: Flow<ConferenceEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.CONFERENCE_EVENT) {
+    override val conferenceEvents: Flow<ConferenceEvent> = allEvents.getEvents(WebsocketEvent.EventCase.CONFERENCE_EVENT) {
         it.conferenceEvent
     }
 
-    override val webRTCEvents: Flow<RTCEvent> = webSocketEvent.getEvents(WebsocketEvent.EventCase.RTC_EVENT) {
+    override val webRTCEvents: Flow<RTCEvent> = allEvents.getEvents(WebsocketEvent.EventCase.RTC_EVENT) {
         it.rtcEvent
     }
 
@@ -60,8 +66,8 @@ class KtorWebSocket(
         return true
     }
 
-    override fun receiveEcho(): Flow<EchoMessage> {
-        TODO("Not yet implemented")
+    override val receiveEcho: Flow<EchoMessage> = webSocketFrames.mapNotNull {
+        it.tryRead()
     }
 
     private fun <T> Flow<WebsocketEvent>.getEvents(type: WebsocketEvent.EventCase, selector: (WebsocketEvent) -> T): Flow<T> {
@@ -69,6 +75,37 @@ class KtorWebSocket(
             if (it.eventCase == type) {
                 selector(it)
             } else null
+        }
+    }
+
+    private val WebSocketSession.receivedFrames: Flow<Frame>
+        get() = incoming.consumeAsFlow()
+
+    private inline fun <reified T: Message> Frame.tryRead(): T? = try {
+        serializer.read(T::class, readBytes())
+    } catch (ex: InvalidProtocolBufferException) {
+        null
+    }
+
+    private suspend fun newWebSocketSession(): DefaultClientWebSocketSession? {
+        try {
+            if (config.logLevel >= LogLevel.BASIC) {
+                log.info("<-- establishing session")
+            }
+            val session = client.webSocketSession {
+                url(config.websocketUrl)
+            }
+            if (config.logLevel >= LogLevel.BASIC) {
+                log.info("<-- session established -->")
+            }
+
+            return session
+        } catch (ex: IOException) {
+            // reconnect
+            if (config.logLevel >= LogLevel.BASIC) {
+                log.info("--X session establishing failure: ", ex)
+            }
+            return null
         }
     }
 }

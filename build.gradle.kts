@@ -38,11 +38,6 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.2.1")
 
-    implementation("com.tinder.scarlet:scarlet:0.1.10")
-    implementation("com.tinder.scarlet:websocket-okhttp:0.1.10")
-    implementation("com.tinder.scarlet:message-adapter-protobuf:0.1.10")
-    implementation("com.tinder.scarlet:stream-adapter-coroutines:0.1.10")
-
     testImplementation(platform("org.junit:junit-bom:5.7.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
