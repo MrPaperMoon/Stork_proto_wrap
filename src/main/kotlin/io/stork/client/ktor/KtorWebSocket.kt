@@ -1,29 +1,17 @@
 package io.stork.client.ktor
 
-import com.google.protobuf.InvalidProtocolBufferException
-import com.google.protobuf.Message
-import io.ktor.client.*
-import io.ktor.client.features.websocket.*
-import io.ktor.client.request.*
-import io.ktor.http.cio.websocket.*
 import io.stork.client.ApiClientConfig
-import io.stork.client.LogLevel
 import io.stork.client.SessionManager
 import io.stork.client.ktor.ws.WSPacket
 import io.stork.client.ktor.ws.WebSocketSession
 import io.stork.client.ktor.ws.WebSocketSessionFactory
 import io.stork.client.module.EventWebsocket
 import io.stork.client.util.launchCatching
-import io.stork.client.util.repeat
-import io.stork.proto.calls.conference.ConferenceEvent
-import io.stork.proto.calls.rtc.RTCEvent
 import io.stork.proto.websocket.EchoMessage
 import io.stork.proto.websocket.WebsocketEvent
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
-import java.io.IOException
 
 class WebSocketImpl(
     private val config: ApiClientConfig,
@@ -49,7 +37,7 @@ class WebSocketImpl(
             field = value
         }
 
-    private var wsConnectionParams: WsConnectionParameters? = null
+    private var wsConnectionParams: WSConnectionParameters? = null
         set(value) {
             when {
                 value == null -> {
@@ -81,7 +69,7 @@ class WebSocketImpl(
 
     private fun start(address: String, sessionId: String) {
         log.debug("start client with address = {}, sessionId = {}", address, sessionId)
-        wsConnectionParams = WsConnectionParameters(address, sessionId)
+        wsConnectionParams = WSConnectionParameters(address, sessionId)
     }
 
     private fun stop() {
