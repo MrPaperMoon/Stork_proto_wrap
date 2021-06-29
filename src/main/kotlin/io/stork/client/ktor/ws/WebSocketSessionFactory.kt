@@ -33,6 +33,7 @@ class WebSocketSessionFactory(
                     lastSessionId = newSession.sessionId
                     lastSession = newSession
                     reconnectTimer.reset()
+                    newSession.parsedPackets.collect {}
                 } catch (ex: CancellationException) {
                     log.debug("Coroutine cancelled, closing last session... quitting the session creation loop")
                     lastSession?.close()
