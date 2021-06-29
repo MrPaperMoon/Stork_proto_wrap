@@ -33,7 +33,6 @@ class WebSocketSessionFactory(
                     lastSessionId = newSession.sessionId
                     lastSession = newSession
                     reconnectTimer.reset()
-                    newSession.parsedPackets.collect()
                 } catch (ex: CancellationException) {
                     log.debug("Coroutine cancelled, closing last session... quitting the session creation loop")
                     lastSession?.close()
@@ -45,7 +44,7 @@ class WebSocketSessionFactory(
                     log.debug("Will retry after timeout: {}", retryTimeout)
                     delay(retryTimeout.inWholeMilliseconds)
                 }
-                log.debug("KeksSession closed, creating a new session...")
+                log.debug("WebSocketSession closed, creating a new session...")
             }
         }
     }

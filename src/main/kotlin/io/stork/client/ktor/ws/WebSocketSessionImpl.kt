@@ -6,10 +6,13 @@ import io.stork.proto.websocket.EchoMessage
 import io.stork.proto.websocket.WebsocketEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import org.slf4j.LoggerFactory
 
 class WebSocketSessionImpl(private val webSocket: WebSocket,
                            private val serializer: ProtobufSerializer,
                            override val sessionId: String): WebSocketSession {
+    private val log = LoggerFactory.getLogger("WS")
     override val isNewSession: Boolean = true
 
     override val parsedPackets: Flow<WSPacket> = webSocket.received
@@ -21,6 +24,8 @@ class WebSocketSessionImpl(private val webSocket: WebSocket,
                 val echo = serializer.read(EchoMessage::class, it)
                 WSPacket.Echo(echo)
             }
+        }.onEach {
+            log.info("--> $it")
         }
 
     override suspend fun send(payload: EchoMessage) {

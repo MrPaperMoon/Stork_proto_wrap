@@ -38,7 +38,7 @@ class LoggingWebSocketListener(private val socketAddress: String,
         val responseDescription = response?.let {
             "${it.code}, ${it.message}, body: ${
                 it.body?.string()
-            }" } ?: ""
+            }" } ?: "no response!"
         log.error("{} failure: $responseDescription ", socketAddress, throwable)
     }
 }
