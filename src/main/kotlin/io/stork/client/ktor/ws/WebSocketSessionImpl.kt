@@ -7,6 +7,7 @@ import io.stork.proto.websocket.WebsocketEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onErrorReturn
 import org.slf4j.LoggerFactory
 
 class WebSocketSessionImpl(private val webSocket: WebSocket,

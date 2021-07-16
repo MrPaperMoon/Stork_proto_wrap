@@ -33,8 +33,7 @@ internal object KtorApiClientFactory {
         }
         val websocket = WebSocketImpl(config, sessionManager, WebSocketSessionFactory(
             OkHttpWebSocketProvider(client)
-        )
-        )
+        ))
         return KtorApiClient(config, ktorClient, sessionManager, websocket)
     }
 }

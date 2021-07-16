@@ -37,6 +37,7 @@ class OkHttpWebSocketProvider(
         val debugger = webSocketListener
         val packetsReceiver = IncomingDataFramesListener()
 
+        log.info("Opening new websocket, address = {}", realAddress)
         val backingWebSocket =
                 okHttpClient.newWebSocket(socketRequest, CompositeWebSocketListener(logger, debugger, packetsReceiver))
 
@@ -50,7 +51,7 @@ class OkHttpWebSocketProvider(
             }
 
             override suspend fun close() {
-                log.debug("{} will be closed", address)
+                log.info("{} will be closed", address)
                 backingWebSocket.close(1000, "Bye")
             }
         }

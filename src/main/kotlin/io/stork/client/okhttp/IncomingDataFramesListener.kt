@@ -8,6 +8,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import java.lang.Exception
 
 class IncomingDataFramesListener: WebSocketListener() {
     private val packetsChannel: BroadcastChannel<ByteArray> = BroadcastChannel(Channel.CONFLATED)
@@ -29,12 +30,12 @@ class IncomingDataFramesListener: WebSocketListener() {
     }
 
     override fun onFailure(webSocket: WebSocket, throwable: Throwable, response: Response?) {
-        complete()
+        complete(exception = throwable)
     }
 
-    private fun complete() {
+    private fun complete(exception: Throwable? = null) {
         if (!packetsChannel.isClosedForSend) {
-            packetsChannel.close()
+            packetsChannel.close(exception)
         }
     }
 }

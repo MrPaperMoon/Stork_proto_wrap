@@ -87,17 +87,18 @@ class WebSocketImpl(
         }
     }
 
-    override val receiveEcho: Flow<EchoMessage> = session
+    private val packetsStream: Flow<WSPacket> = session
         .filterNotNull()
         .flatMapConcat { it.parsedPackets }
+        .catch {}
+
+    override val receiveEcho: Flow<EchoMessage> = packetsStream
         .mapNotNull {
             (it as? WSPacket.Echo)?.echoMessage
         }
 
 
-    override val allEvents: Flow<WebsocketEvent> = session
-        .filterNotNull()
-        .flatMapConcat { it.parsedPackets }
+    override val allEvents: Flow<WebsocketEvent> = packetsStream
         .mapNotNull {
             (it as? WSPacket.Event)?.event
         }
