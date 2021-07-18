@@ -1,5 +1,6 @@
 package io.stork.client
 
+import com.squareup.wire.WireTypeAdapterFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.features.json.*
@@ -7,11 +8,9 @@ import io.ktor.client.features.websocket.*
 import io.stork.client.ktor.ProtobufFeature
 import io.stork.client.ktor.StorkKtorResponseValidator
 import io.stork.client.ktor.WebSocketImpl
-import io.stork.client.ktor.ws.KtorWebSocketProvider
 import io.stork.client.ktor.ws.OkHttpWebSocketProvider
 import io.stork.client.ktor.ws.WebSocketSessionFactory
 import io.stork.client.okhttp.OkHttpFactory
-import io.stork.client.okhttp.objectMapper
 
 internal object KtorApiClientFactory {
     fun create(config: ApiClientConfig, sessionManager: SessionManager): ApiClient {
@@ -27,7 +26,9 @@ internal object KtorApiClientFactory {
             when (config.mediaType) {
                 ApiMediaType.PROTOBUF -> install(ProtobufFeature)
                 ApiMediaType.JSON -> install(JsonFeature) {
-                    serializer = JacksonSerializer(objectMapper)
+                    serializer = GsonSerializer {
+                        registerTypeAdapterFactory(WireTypeAdapterFactory())
+                    }
                 }
             }
         }

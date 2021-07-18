@@ -7,8 +7,8 @@ class ValidationException(val error: ValidationError): StorkApiException(error.d
     companion object {
         const val CODE = 400
 
-        private fun ValidationError.describe(): String = violationsList.joinToString {
-            it.field + " - " + it.message
+        private fun ValidationError.describe(): String = violations.joinToString {
+            it.field_ + " - " + it.message
         }
     }
 }

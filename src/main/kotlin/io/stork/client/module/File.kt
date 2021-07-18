@@ -1,19 +1,20 @@
 package io.stork.client.module
 
+import io.stork.client.ApiResult
 import io.stork.proto.files.file.*
 
 interface File {
-    suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): GetFilePreSignedUrlResponse
+    suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): ApiResult<GetFilePreSignedUrlResponse>
 
-    suspend fun startMultipart(body: UploadFileRequest): StartMultipartFileUploadResponse
+    suspend fun startMultipart(body: UploadFileRequest): ApiResult<StartMultipartFileUploadResponse>
 
-    suspend fun finishPart(body: FinishPartUploadRequest): FinishPartUploadResponse
+    suspend fun finishPart(body: FinishPartUploadRequest): ApiResult<FinishPartUploadResponse>
 
-    suspend fun finishMultipart(body: FinishMultipartFileUploadRequest): FinishMultipartFileUploadResponse
+    suspend fun finishMultipart(body: FinishMultipartFileUploadRequest): ApiResult<FinishMultipartFileUploadResponse>
 
-    suspend fun uploadFile(body: UploadFileRequest, content: java.io.File): UploadFileResponse
+    suspend fun uploadFile(body: UploadFileRequest, content: java.io.File): ApiResult<UploadFileResponse>
 
-    suspend fun getFileMetadata(fileId: String): GetFileMetadataResponse
+    suspend fun getFileMetadata(fileId: String): ApiResult<GetFileMetadataResponse>
 
     suspend fun deleteFile(fileId: String)
 }

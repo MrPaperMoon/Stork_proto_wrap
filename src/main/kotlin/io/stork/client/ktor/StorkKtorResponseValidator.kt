@@ -4,7 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.statement.*
-import io.stork.client.Result
+import io.stork.client.ApiResult
 import io.stork.client.exceptions.AuthenticationException
 import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
@@ -16,23 +16,23 @@ fun HttpClientConfig<*>.StorkKtorResponseValidator() {
     }
 }
 
-suspend inline fun <reified T: Any> HttpResponse.getResult(): Result<T> {
+suspend inline fun <reified T: Any> HttpResponse.getResult(): ApiResult<T> {
     try {
         return when (status.value) {
-            200 -> Result.Success(receive())
-            AuthenticationException.CODE -> Result.AuthenticationError(receive())
-            ValidationException.CODE -> Result.ValidationError(receive())
-            UnknownException.CODE -> Result.UnknownError(receive())
-            else -> Result.UnknownError(asUnhandledError())
+            200 -> ApiResult.Success(receive())
+            AuthenticationException.CODE -> ApiResult.AuthenticationError(receive())
+            ValidationException.CODE -> ApiResult.ValidationError(receive())
+            UnknownException.CODE -> ApiResult.UnknownError(receive())
+            else -> ApiResult.UnknownError(asUnhandledError())
         }
     } catch (ex: Exception) {
-        return Result.fromException(ex)
+        return ApiResult.fromException(ex)
     }
 }
 
 fun HttpResponse.asUnhandledError(): UnhandledError {
-    return UnhandledError.newBuilder()
-        .setName("Code ${status.value}")
-        .setMessage(status.description)
-        .build()
+    return UnhandledError(
+            name = "Code ${status.value}",
+            message = status.description
+    )
 }

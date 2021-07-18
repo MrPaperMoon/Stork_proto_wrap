@@ -1,14 +1,13 @@
 package io.stork.client.ktor.ws
 
-import com.google.protobuf.InvalidProtocolBufferException
 import io.stork.client.ktor.ProtobufSerializer
 import io.stork.proto.websocket.EchoMessage
 import io.stork.proto.websocket.WebsocketEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onErrorReturn
 import org.slf4j.LoggerFactory
+import java.io.IOException
 
 class WebSocketSessionImpl(private val webSocket: WebSocket,
                            private val serializer: ProtobufSerializer,
@@ -21,7 +20,7 @@ class WebSocketSessionImpl(private val webSocket: WebSocket,
             try {
                 val event = serializer.read(WebsocketEvent::class, it)
                 WSPacket.Event(event)
-            } catch (invalid: InvalidProtocolBufferException) {
+            } catch (invalid: IOException) {
                 val echo = serializer.read(EchoMessage::class, it)
                 WSPacket.Echo(echo)
             }

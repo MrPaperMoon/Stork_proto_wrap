@@ -1,6 +1,6 @@
 package io.stork.client.ktor
 
-import com.google.protobuf.Message
+import com.squareup.wire.Message
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -48,7 +48,7 @@ class ProtobufFeature private constructor(
                 val serializedContent = when (payload) {
                     Unit -> EmptyContent
                     is EmptyContent -> EmptyContent
-                    is Message -> feature.serializer.write(payload, contentType)
+                    is Message<*, *> -> feature.serializer.write(payload, contentType)
                     else -> return@intercept
                 }
 
@@ -63,7 +63,7 @@ class ProtobufFeature private constructor(
 
                 if (info.type.isSubclassOf(Message::class)) {
                     @Suppress("UNCHECKED_CAST")
-                    val messageSubtype = info.type as KClass<out Message>
+                    val messageSubtype = info.type as KClass<out Message<*, *>>
                     val parsedBody = feature.serializer.read(messageSubtype, body.readRemaining())
                     val response = HttpResponseContainer(info, parsedBody)
                     proceedWith(response)

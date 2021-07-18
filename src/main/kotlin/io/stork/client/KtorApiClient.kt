@@ -1,6 +1,7 @@
 package io.stork.client
 
-import com.google.protobuf.Message
+import com.squareup.wire.AnyMessage
+import com.squareup.wire.Message
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -62,7 +63,7 @@ internal class KtorApiClient(
         }
     }
 
-    private suspend inline fun <reified T: Any> getAndLogResult(response: HttpResponse): Result<T> {
+    private suspend inline fun <reified T: Any> getAndLogResult(response: HttpResponse): ApiResult<T> {
         val result = response.getResult<T>()
         when (config.logLevel) {
             LogLevel.BASIC -> log.info("{} >>> {}", response.call.request.url, response.status)
@@ -72,7 +73,7 @@ internal class KtorApiClient(
         return result
     }
 
-    private suspend inline fun <reified T: Any> makeApiCall(path: String, body: Message): T {
+    private suspend inline fun <reified T : Any> makeApiCall(path: String, body: Message<*, *>): ApiResult<T> {
         val url = apiCallUrl(path)
 
         logRequest(url, body)
@@ -83,11 +84,10 @@ internal class KtorApiClient(
             this.body = body
         }
 
-        val result = getAndLogResult<T>(response)
-        return result.getOrThrow()
+        return getAndLogResult(response)
     }
 
-    private suspend inline fun <reified T: Any> makeApiCallWithoutBody(path: String, method: HttpMethod = HttpMethod.Get): T {
+    private suspend inline fun <reified T : Any> makeApiCallWithoutBody(path: String, method: HttpMethod = HttpMethod.Get): ApiResult<T> {
         val url = apiCallUrl(path)
 
         logRequest(url)
@@ -98,54 +98,53 @@ internal class KtorApiClient(
             this.method = method
         }
 
-        val result = getAndLogResult<T>(response)
-        return result.getOrThrow()
+        return getAndLogResult(response)
     }
 
 
     override val account: Account = object: Account {
-        override suspend fun list(body: AccountsListRequest): AccountsListResponse =
+        override suspend fun list(body: AccountsListRequest): ApiResult<AccountsListResponse> =
             makeApiCall("account.list", body)
 
-        override suspend fun updatePassword(body: UpdateAccountPasswordRequest): UpdateAccountPasswordResponse =
+        override suspend fun updatePassword(body: UpdateAccountPasswordRequest): ApiResult<UpdateAccountPasswordResponse> =
             makeApiCall("account.updatePasswords", body)
 
-        override suspend fun updateName(body: UpdateAccountNameRequest): UpdateAccountNameResponse =
+        override suspend fun updateName(body: UpdateAccountNameRequest): ApiResult<UpdateAccountNameResponse> =
             makeApiCall("account.updateName", body)
 
     }
     override val auth: Auth = object : Auth {
-        override suspend fun checkEmail(body: CheckEmailRequest): CheckEmailResponse {
+        override suspend fun checkEmail(body: CheckEmailRequest): ApiResult<CheckEmailResponse> {
             return makeApiCall("auth.checkEmail", body)
         }
 
-        override suspend fun login(body: LoginRequest): LoginResponse {
+        override suspend fun login(body: LoginRequest): ApiResult<LoginResponse> {
             return makeApiCall("auth.login", body)
         }
 
-        override suspend fun sendMagicLink(body: SendMagicLinkRequest): SendMagicLinkResponse {
+        override suspend fun sendMagicLink(body: SendMagicLinkRequest): ApiResult<SendMagicLinkResponse> {
             return makeApiCall("auth.sendMagicLink", body)
         }
 
-        override suspend fun verifyMagicLinkCode(body: VerifyMagicLinkCodeRequest): LoginResponse {
+        override suspend fun verifyMagicLinkCode(body: VerifyMagicLinkCodeRequest): ApiResult<LoginResponse> {
             return makeApiCall("auth.verifyMagicLinkCode", body)
         }
 
-        override suspend fun verifyMagicLink(body: VerifyMagicLinkRequest): LoginResponse {
+        override suspend fun verifyMagicLink(body: VerifyMagicLinkRequest): ApiResult<LoginResponse> {
             return makeApiCall("auth.verifyMagicLink", body)
         }
 
-        override suspend fun oauthGoogle(body: LoginWithGoogleRequest): LoginResponse {
+        override suspend fun oauthGoogle(body: LoginWithGoogleRequest): ApiResult<LoginResponse> {
             return makeApiCall("auth.oauth.google", body)
         }
 
-        override suspend fun oauthSlack(body: LoginWithSlackRequest): LoginResponse {
+        override suspend fun oauthSlack(body: LoginWithSlackRequest): ApiResult<LoginResponse> {
             return makeApiCall("auth.oauth.slack", body)
         }
 
     }
     override val avatar: Avatar = object: Avatar {
-        override suspend fun uploadFile(file: MultipartBody.Part): AvatarUploadResponse {
+        override suspend fun uploadFile(file: MultipartBody.Part): ApiResult<AvatarUploadResponse> {
             TODO()
         }
 
@@ -161,7 +160,7 @@ internal class KtorApiClient(
             }
         }
 
-        override suspend fun setPrimary(body: SetPrimaryAvatarRequest): SetPrimaryAvatarResponse {
+        override suspend fun setPrimary(body: SetPrimaryAvatarRequest): ApiResult<SetPrimaryAvatarResponse> {
             return makeApiCall("avatar.setPrimary", body)
         }
 
@@ -171,116 +170,116 @@ internal class KtorApiClient(
     }
 
     override val chat: Chat = object: Chat {
-        override suspend fun get(body: GetChatRequest): GetChatResponse {
+        override suspend fun get(body: GetChatRequest): ApiResult<GetChatResponse> {
             return makeApiCall("chat.get", body)
         }
 
-        override suspend fun listRecentChats(body: ListRecentChatsRequest): ListRecentChatsResponse {
+        override suspend fun listRecentChats(body: ListRecentChatsRequest): ApiResult<ListRecentChatsResponse> {
             return makeApiCall("chat.recent.list", body)
         }
 
-        override suspend fun create(body: CreateChatRequest): CreateChatResponse {
+        override suspend fun create(body: CreateChatRequest): ApiResult<CreateChatResponse> {
             return makeApiCall("chat.create", body)
         }
 
-        override suspend fun update(body: UpdateChatRequest): UpdateChatResponse {
+        override suspend fun update(body: UpdateChatRequest): ApiResult<UpdateChatResponse> {
             return makeApiCall("chat.update", body)
         }
 
-        override suspend fun join(body: JoinChatRequest): JoinChatResponse {
+        override suspend fun join(body: JoinChatRequest): ApiResult<JoinChatResponse> {
             return makeApiCall("chat.join", body)
         }
 
-        override suspend fun leave(body: LeaveChatRequest): LeaveChatResponse {
+        override suspend fun leave(body: LeaveChatRequest): ApiResult<LeaveChatResponse> {
             return makeApiCall("chat.leave", body)
         }
 
-        override suspend fun archive(body: ArchiveChatRequest): ArchiveChatResponse {
+        override suspend fun archive(body: ArchiveChatRequest): ApiResult<ArchiveChatResponse> {
             return makeApiCall("chat.archive", body)
         }
 
-        override suspend fun markAsRead(body: MarkChatAsReadRequest): MarkChatAsReadResponse {
+        override suspend fun markAsRead(body: MarkChatAsReadRequest): ApiResult<MarkChatAsReadResponse> {
             return makeApiCall("chat.markAsRead", body)
         }
 
-        override suspend fun search(body: SearchChatRequest): SearchChatResponse {
+        override suspend fun search(body: SearchChatRequest): ApiResult<SearchChatResponse> {
             return makeApiCall("chat.search", body)
         }
     }
     override val chatMessage: ChatMessage = object: ChatMessage {
-        override suspend fun get(body: GetChatMessagesRequest): GetChatMessagesResponse {
+        override suspend fun get(body: GetChatMessagesRequest): ApiResult<GetChatMessagesResponse> {
             return makeApiCall("chat.message.get", body)
         }
 
-        override suspend fun send(body: SendChatMessageRequest): SendChatMessageResponse {
+        override suspend fun send(body: SendChatMessageRequest): ApiResult<SendChatMessageResponse> {
             return makeApiCall("chat.message.send", body)
         }
 
-        override suspend fun edit(body: EditChatMessageRequest): EditChatMessageResponse {
+        override suspend fun edit(body: EditChatMessageRequest): ApiResult<EditChatMessageResponse> {
             return makeApiCall("chat.message.edit", body)
         }
 
-        override suspend fun toggleReaction(body: ToggleChatMessageReactionRequest): ToggleChatMessageReactionResponse {
+        override suspend fun toggleReaction(body: ToggleChatMessageReactionRequest): ApiResult<ToggleChatMessageReactionResponse> {
             return makeApiCall("chat.message.toggleReaction", body)
         }
 
     }
     override val conference: Conference = object: Conference {
-        override suspend fun create(body: CreateConferenceRequest): CreateConferenceResponse {
+        override suspend fun create(body: CreateConferenceRequest): ApiResult<CreateConferenceResponse> {
             return makeApiCall("conference.create", body)
         }
 
-        override suspend fun join(body: JoinConferenceRequest): JoinConferenceResponse {
+        override suspend fun join(body: JoinConferenceRequest): ApiResult<JoinConferenceResponse> {
             return makeApiCall("conference.join", body)
         }
 
-        override suspend fun list(body: ConferenceListRequest): ConferenceListResponse {
+        override suspend fun list(body: ConferenceListRequest): ApiResult<ConferenceListResponse> {
             return makeApiCall("conference.list", body)
         }
 
-        override suspend fun leave(body: LeaveConferenceRequest): LeaveConferenceResponse {
+        override suspend fun leave(body: LeaveConferenceRequest): ApiResult<LeaveConferenceResponse> {
             return makeApiCall("conference.leave", body)
         }
 
-        override suspend fun inviteToConference(body: InviteToConferenceRequest): InviteToConferenceResponse {
+        override suspend fun inviteToConference(body: InviteToConferenceRequest): ApiResult<InviteToConferenceResponse> {
             return makeApiCall("conference.invite", body)
         }
 
-        override suspend fun watercoolerUpdateScope(body: ConferenceWatercoolerUpdateScopeRequest): ConferenceWatercoolerUpdateScopeResponse {
+        override suspend fun watercoolerUpdateScope(body: ConferenceWatercoolerUpdateScopeRequest): ApiResult<ConferenceWatercoolerUpdateScopeResponse> {
             return makeApiCall("conference.watercooler.updateScope", body)
         }
 
-        override suspend fun conferenceInfo(body: ConferenceInfoRequest): ConferenceInfoResponse {
+        override suspend fun conferenceInfo(body: ConferenceInfoRequest): ApiResult<ConferenceInfoResponse> {
             return makeApiCall("conference.info", body)
         }
 
-        override suspend fun conferenceVoiceChannelUpdateMute(body: ConferenceVoiceChannelUpdateMuteRequest): ConferenceVoiceChannelUpdateMuteResponse {
+        override suspend fun conferenceVoiceChannelUpdateMute(body: ConferenceVoiceChannelUpdateMuteRequest): ApiResult<ConferenceVoiceChannelUpdateMuteResponse> {
             return makeApiCall("conference.voiceChannel.updateMute", body)
         }
 
     }
 
     override val file: io.stork.client.module.File = object: io.stork.client.module.File {
-        override suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): GetFilePreSignedUrlResponse {
+        override suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): ApiResult<GetFilePreSignedUrlResponse> {
             return makeApiCall("file.getPreSignedUrl", body)
         }
 
-        override suspend fun startMultipart(body: UploadFileRequest): StartMultipartFileUploadResponse {
+        override suspend fun startMultipart(body: UploadFileRequest): ApiResult<StartMultipartFileUploadResponse> {
             return makeApiCall("file.startMultipart", body)
         }
 
-        override suspend fun finishPart(body: FinishPartUploadRequest): FinishPartUploadResponse {
+        override suspend fun finishPart(body: FinishPartUploadRequest): ApiResult<FinishPartUploadResponse> {
             return makeApiCall("file.finishPart", body)
         }
 
-        override suspend fun finishMultipart(body: FinishMultipartFileUploadRequest): FinishMultipartFileUploadResponse {
+        override suspend fun finishMultipart(body: FinishMultipartFileUploadRequest): ApiResult<FinishMultipartFileUploadResponse> {
             return makeApiCall("file.finishMultipart", body)
         }
 
         override suspend fun uploadFile(
             body: UploadFileRequest,
             content: File
-        ): UploadFileResponse {
+        ): ApiResult<UploadFileResponse> {
             val url = apiCallUrl("file.directUpload")
             logRequest(url)
             val response: HttpResponse = client.submitFormWithBinaryData(
@@ -292,98 +291,98 @@ internal class KtorApiClient(
                     })
                 }
             )
-            return getAndLogResult<UploadFileResponse>(response).getOrThrow()
+            return getAndLogResult<UploadFileResponse>(response)
         }
 
-        override suspend fun getFileMetadata(fileId: String): GetFileMetadataResponse {
+        override suspend fun getFileMetadata(fileId: String): ApiResult<GetFileMetadataResponse> {
             return makeApiCallWithoutBody("file.metadata/$fileId", HttpMethod.Get)
         }
 
         override suspend fun deleteFile(fileId: String) {
-            return makeApiCallWithoutBody("file.delete/$fileId", HttpMethod.Delete)
+            makeApiCallWithoutBody<AnyMessage>("file.delete/$fileId", HttpMethod.Delete)
         }
     }
 
     override val member: Member = object: Member {
-        override suspend fun list(body: MemberListRequest): MemberListResponse {
+        override suspend fun list(body: MemberListRequest): ApiResult<MemberListResponse> {
             return makeApiCall("member.list", body)
         }
     }
 
     override val publicProfile: PublicProfile = object: PublicProfile {
-        override suspend fun list(body: PublicProfileListRequest): PublicProfileListResponse {
+        override suspend fun list(body: PublicProfileListRequest): ApiResult<PublicProfileListResponse> {
             return makeApiCall("publicProfile.list", body)
         }
     }
 
     override val recordings: Recordings = object: Recordings {
-        override suspend fun list(body: RecordingListRequest): RecordingListResponse {
+        override suspend fun list(body: RecordingListRequest): ApiResult<RecordingListResponse> {
             return makeApiCall("recording.list", body)
         }
 
-        override suspend fun updateTitle(body: UpdateRecordingTitleRequest): UpdateRecordingTitleResponse {
+        override suspend fun updateTitle(body: UpdateRecordingTitleRequest): ApiResult<UpdateRecordingTitleResponse> {
             return makeApiCall("recording.updateRecordingTitle", body)
         }
     }
 
     override val rtc: RTC = object: RTC {
-        override suspend fun negotiateConnection(body: RTCConnectionNegotiateRequest): RTCConnectionNegotiateResponse {
+        override suspend fun negotiateConnection(body: RTCConnectionNegotiateRequest): ApiResult<RTCConnectionNegotiateResponse> {
             return makeApiCall("rtc.negotiate", body)
         }
 
-        override suspend fun addIceCandidates(body: AddRTCIceCandidatesRequest): AddRTCIceCandidatesResponse {
+        override suspend fun addIceCandidates(body: AddRTCIceCandidatesRequest): ApiResult<AddRTCIceCandidatesResponse> {
             return makeApiCall("rtc.addIceCandidates", body)
         }
 
-        override suspend fun removeIceCandidates(body: RemoveRTCIceCandidatesRequest): RemoveRTCIceCandidatesResponse {
+        override suspend fun removeIceCandidates(body: RemoveRTCIceCandidatesRequest): ApiResult<RemoveRTCIceCandidatesResponse> {
             return makeApiCall("rtc.removeIceCandidates", body)
         }
     }
 
     override val session: Session = object: Session {
-        override suspend fun generate(body: GenerateSessionRequest): GenerateSessionResponse {
+        override suspend fun generate(body: GenerateSessionRequest): ApiResult<GenerateSessionResponse> {
             return makeApiCall("session.generate", body)
         }
 
-        override suspend fun logout(body: LogoutRequest): LogoutResponse {
+        override suspend fun logout(body: LogoutRequest): ApiResult<LogoutResponse> {
             return makeApiCall("session.logout", body)
         }
 
-        override suspend fun addPushNotificationsToken(body: AddPushNotificationsTokenRequest): AddPushNotificationsTokenResponse {
+        override suspend fun addPushNotificationsToken(body: AddPushNotificationsTokenRequest): ApiResult<AddPushNotificationsTokenResponse> {
             return makeApiCall("session.addPushNotificationsToken", body)
         }
 
-        override suspend fun removePushNotificationsToken(body: RemovePushNotificationsTokenRequest): RemovePushNotificationsTokenResponse {
+        override suspend fun removePushNotificationsToken(body: RemovePushNotificationsTokenRequest): ApiResult<RemovePushNotificationsTokenResponse> {
             return makeApiCall("session.removePushNotificationsToken", body)
         }
     }
 
     override val workspace: Workspace = object: Workspace {
-        override suspend fun join(body: JoinWorkspaceRequest): JoinWorkspaceResponse {
+        override suspend fun join(body: JoinWorkspaceRequest): ApiResult<JoinWorkspaceResponse> {
             return makeApiCall("workspace.join", body)
         }
 
-        override suspend fun invite(body: InviteToWorkspaceRequest): InviteToWorkspaceResponse {
+        override suspend fun invite(body: InviteToWorkspaceRequest): ApiResult<InviteToWorkspaceResponse> {
             return makeApiCall("workspace.invite", body)
         }
 
-        override suspend fun importMembersFromSlack(body: ImportMembersToWorkspaceFromSlackRequest): ImportMembersToWorkspaceFromSlackResponse {
+        override suspend fun importMembersFromSlack(body: ImportMembersToWorkspaceFromSlackRequest): ApiResult<ImportMembersToWorkspaceFromSlackResponse> {
             return makeApiCall("workspace.importMembers.slack", body)
         }
 
-        override suspend fun importMembersFromGoogle(body: ImportMembersToWorkspaceFromGoogleRequest): ImportMembersToWorkspaceFromGoogleResponse {
+        override suspend fun importMembersFromGoogle(body: ImportMembersToWorkspaceFromGoogleRequest): ApiResult<ImportMembersToWorkspaceFromGoogleResponse> {
             return makeApiCall("workspace.importMembers.google", body)
         }
 
-        override suspend fun list(body: WorkspaceListRequest): WorkspaceListResponse {
+        override suspend fun list(body: WorkspaceListRequest): ApiResult<WorkspaceListResponse> {
             return makeApiCall("workspace.list", body)
         }
 
-        override suspend fun create(body: CreateWorkspaceRequest): CreateWorkspaceResponse {
+        override suspend fun create(body: CreateWorkspaceRequest): ApiResult<CreateWorkspaceResponse> {
             return makeApiCall("workspace.create", body)
         }
 
-        override suspend fun checkSubdomain(body: CheckWorkspaceSubdomainRequest): CheckWorkspaceSubdomainResponse {
+        override suspend fun checkSubdomain(body: CheckWorkspaceSubdomainRequest): ApiResult<CheckWorkspaceSubdomainResponse> {
             return makeApiCall("workspace.checkSubdomain", body)
         }
     }

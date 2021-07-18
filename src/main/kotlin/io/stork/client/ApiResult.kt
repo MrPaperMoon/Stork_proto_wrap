@@ -5,11 +5,11 @@ import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
 import io.stork.proto.error.UnhandledError
 
-sealed class Result<out T: Any> {
-    data class Success<T: Any>(val response: T): Result<T>()
-    data class AuthenticationError(val response: io.stork.proto.error.AuthenticationError): Result<Nothing>()
-    data class ValidationError(val response: io.stork.proto.error.ValidationError): Result<Nothing>()
-    data class UnknownError(val response: UnhandledError): Result<Nothing>()
+sealed class ApiResult<out T: Any> {
+    data class Success<T: Any>(val response: T): ApiResult<T>()
+    data class AuthenticationError(val response: io.stork.proto.error.AuthenticationError): ApiResult<Nothing>()
+    data class ValidationError(val response: io.stork.proto.error.ValidationError): ApiResult<Nothing>()
+    data class UnknownError(val response: UnhandledError): ApiResult<Nothing>()
 
     fun getOrThrow(): T = when (this) {
         is Success -> response
@@ -27,13 +27,13 @@ sealed class Result<out T: Any> {
 
     companion object {
         private fun Exception.asUnhandledError(): UnhandledError {
-            return UnhandledError.newBuilder()
-                .setName(javaClass.name)
-                .setMessage(message + ":\n" + stackTraceToString())
-                .build()
+            return UnhandledError(
+                    name = javaClass.name,
+                    message = message + ":\n" + stackTraceToString()
+            )
         }
 
-        fun <T: Any> fromException(ex: Exception): Result<T> {
+        fun <T: Any> fromException(ex: Exception): ApiResult<T> {
             return UnknownError(ex.asUnhandledError())
         }
     }
