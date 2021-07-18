@@ -1,9 +1,10 @@
 package io.stork.client;
 
 import io.stork.client.module.*
+import io.stork.client.ws.WebSocketProvider
 
 
-interface ApiClient: SessionManager {
+interface ApiClient: SessionManager, WebSocketProvider {
     val account: Account
     val auth: Auth
     val avatar: Avatar
@@ -17,7 +18,6 @@ interface ApiClient: SessionManager {
     val rtc: RTC
     val session: Session
     val workspace: Workspace
-    val websocket: Websocket
 
     companion object {
         operator fun invoke(config: ApiClientConfig = ApiClientConfig()): ApiClient {

@@ -20,6 +20,7 @@ import io.stork.client.module.Conference
 import io.stork.client.module.RTC
 import io.stork.client.module.Session
 import io.stork.client.module.Workspace
+import io.stork.client.ws.WebSocketProvider
 import io.stork.proto.account.*
 import io.stork.proto.auth.*
 import io.stork.proto.avatar.AvatarUploadResponse
@@ -49,8 +50,8 @@ internal class KtorApiClient(
     private val config: ApiClientConfig,
     private val client: HttpClient,
     private val sessionManager: SessionManager,
-    override val websocket: Websocket
-): ApiClient, SessionManager by sessionManager {
+    private val webSocketProvider: WebSocketProvider
+): ApiClient, SessionManager by sessionManager, WebSocketProvider by webSocketProvider {
     private val log = LoggerFactory.getLogger("ApiClient")
 
     private fun apiCallUrl(path: String): String = config.apiBaseUrl + "/" + path

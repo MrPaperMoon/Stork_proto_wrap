@@ -1,12 +1,16 @@
 package io.stork.client
 
 import okhttp3.logging.HttpLoggingInterceptor
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 data class ApiClientConfig(
-    val domainName: String = "stork.ai",
+    val domainName: String = Servers.production,
     val useSsl: Boolean = true,
     val mediaType: ApiMediaType = ApiMediaType.PROTOBUF,
-    val logLevel: LogLevel = LogLevel.NONE
+    val logLevel: LogLevel = LogLevel.NONE,
+    val timeout: Duration = Duration.minutes(1)
 ) {
     private val httpProtocol = when {
         useSsl -> "https"
@@ -20,6 +24,12 @@ data class ApiClientConfig(
 
     val apiBaseUrl: String = "$httpProtocol://$domainName/api"
     val websocketUrl: String = "$wsProtocol://$domainName/ws"
+}
+
+object Servers {
+    val dev = "dev.stork.io"
+    val staging = "stork.io"
+    val production = "stork.ai"
 }
 
 enum class ApiMediaType(internal val contentType: String) {

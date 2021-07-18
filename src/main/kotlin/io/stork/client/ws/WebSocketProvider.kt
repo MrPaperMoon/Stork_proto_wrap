@@ -1,5 +1,7 @@
 package io.stork.client.ws
 
+import io.stork.client.module.WebSocket
+
 interface WebSocketProvider {
-    suspend fun startNewSocket(address: String, sessionId: String?): WebSocket
+    suspend fun startWebSocket(sessionId: String): WebSocket
 }

@@ -2,9 +2,7 @@ package io.stork.client.util
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.CoroutineContext
@@ -25,4 +23,24 @@ fun <T> CoroutineScope.launchCatching(context: CoroutineContext = EmptyCoroutine
             LoggerFactory.getLogger(this.toString()).error("launchCatching failure: ", ex)
         }
     }
+}
+
+fun <T, U> Flow<T>.takeWhile(otherFlow: Flow<U>, predicate: (U) -> Boolean): Flow<T> {
+    return combineTransform(otherFlow) { thisItem, otherItem ->
+        if (predicate(otherItem)) {
+            emit(Either.Left(thisItem))
+        } else {
+            emit(Either.Right(otherItem))
+        }
+    }.takeWhile { it is Either.Left }.map { (it as Either.Left).value }
+}
+
+fun <T, U> Flow<T>.takeUntil(otherFlow: Flow<U>, predicate: (U) -> Boolean): Flow<T> {
+    return combineTransform(otherFlow) { thisItem, otherItem ->
+        if (predicate(otherItem)) {
+            emit(Either.Right(otherItem))
+        } else {
+            emit(Either.Left(thisItem))
+        }
+    }.takeWhile { it is Either.Left }.map { (it as Either.Left).value }
 }

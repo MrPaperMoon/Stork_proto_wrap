@@ -7,12 +7,11 @@ import io.ktor.http.cio.websocket.*
 import io.stork.client.ApiClientConfig
 import io.stork.client.ApiMediaType
 import io.stork.client.okhttp.Serializers
-import io.stork.client.ws.WebSocket
-import io.stork.client.ws.WebSocketProvider
+import io.stork.client.ws.engine.RawWebSocket
+import io.stork.client.ws.engine.WebSocketEngine
 import io.stork.proto.websocket.ClientWSPacket
 import io.stork.proto.websocket.ServerWSPacket
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.broadcast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -20,12 +19,12 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicLong
 
-class KtorWebSocketProvider(private val client: HttpClient,
-                            private val apiClientConfig: ApiClientConfig,
-                            private val serializers: Serializers): WebSocketProvider {
+class KtorWebSocketEngine(private val client: HttpClient,
+                          private val apiClientConfig: ApiClientConfig,
+                          private val serializers: Serializers): WebSocketEngine {
     private val socketCounter = AtomicLong(0)
 
-    override suspend fun startNewSocket(address: String, sessionId: String?): WebSocket {
+    override suspend fun startNewSocket(address: String, sessionId: String?): RawWebSocket {
         val realAddress = when (sessionId) {
             null -> address
             else -> "$address?sessionId=$sessionId"
@@ -39,7 +38,7 @@ class KtorWebSocketProvider(private val client: HttpClient,
         }
         log.info("<-- session established -->")
 
-        return object: WebSocket {
+        return object: RawWebSocket {
             private val incomingFrames = session.incoming.broadcast()
 
             override val received: Flow<ServerWSPacket>

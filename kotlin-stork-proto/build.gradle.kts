@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("org.jetbrains.kotlin.jvm")
   id("com.squareup.wire") version "3.7.0"
+  idea
 }
 
 wire {
@@ -15,6 +16,10 @@ kotlin {
   sourceSets["main"].apply {
     kotlin.srcDir("build/generated/source/wire")
   }
+}
+
+idea.module {
+  sourceDirs = sourceDirs + file("src/main/proto")
 }
 
 // config JVM target to 1.8 for kotlin compilation tasks

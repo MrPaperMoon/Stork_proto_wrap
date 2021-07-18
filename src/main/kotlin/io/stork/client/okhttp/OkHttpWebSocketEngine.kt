@@ -2,8 +2,8 @@ package io.stork.client.okhttp
 
 import io.stork.client.ApiClientConfig
 import io.stork.client.ApiMediaType
-import io.stork.client.ws.WebSocket
-import io.stork.client.ws.WebSocketProvider
+import io.stork.client.ws.engine.RawWebSocket
+import io.stork.client.ws.engine.WebSocketEngine
 import io.stork.proto.websocket.ClientWSPacket
 import io.stork.proto.websocket.ServerWSPacket
 import kotlinx.coroutines.flow.Flow
@@ -14,18 +14,18 @@ import okio.ByteString.Companion.toByteString
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicLong
 
-class OkHttpWebSocketProvider(
+class OkHttpWebSocketEngine(
         private val okHttpClient: OkHttpClient,
         private val apiClientConfig: ApiClientConfig,
         private val serializers: Serializers,
         private val webSocketListener: WebSocketListener? = null,
-): WebSocketProvider {
+): WebSocketEngine {
     private val socketCounter = AtomicLong(0)
 
-    override suspend fun startNewSocket(address: String, sessionId: String?): WebSocket =
+    override suspend fun startNewSocket(address: String, sessionId: String?): RawWebSocket =
             startNewSocketImpl(address, sessionId)
 
-    private fun startNewSocketImpl(address: String, sessionId: String?): WebSocket {
+    private fun startNewSocketImpl(address: String, sessionId: String?): RawWebSocket {
         val realAddress = when (sessionId) {
             null -> address
             else -> "$address?sessionId=$sessionId"
@@ -46,7 +46,7 @@ class OkHttpWebSocketProvider(
         val backingWebSocket =
                 okHttpClient.newWebSocket(socketRequest, CompositeWebSocketListener(logger, debugger, packetsReceiver))
 
-        return object: WebSocket {
+        return object: RawWebSocket {
             override val received: Flow<ServerWSPacket>
                 get() = packetsReceiver.packets
 
