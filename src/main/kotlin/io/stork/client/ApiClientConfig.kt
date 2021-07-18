@@ -19,7 +19,7 @@ data class ApiClientConfig(
     }
 
     val apiBaseUrl: String = "$httpProtocol://$domainName/api"
-    val websocketUrl: String = "$wsProtocol://$domainName/ws/event"
+    val websocketUrl: String = "$wsProtocol://$domainName/ws"
 }
 
 enum class ApiMediaType(internal val contentType: String) {

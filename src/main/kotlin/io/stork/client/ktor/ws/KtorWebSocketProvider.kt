@@ -4,15 +4,25 @@ import io.ktor.client.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.cio.websocket.*
+import io.stork.client.ApiClientConfig
+import io.stork.client.ApiMediaType
+import io.stork.client.okhttp.Serializers
+import io.stork.client.ws.WebSocket
+import io.stork.client.ws.WebSocketProvider
+import io.stork.proto.websocket.ClientWSPacket
+import io.stork.proto.websocket.ServerWSPacket
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.broadcast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicLong
 
-class KtorWebSocketProvider(private val client: HttpClient): WebSocketProvider {
+class KtorWebSocketProvider(private val client: HttpClient,
+                            private val apiClientConfig: ApiClientConfig,
+                            private val serializers: Serializers): WebSocketProvider {
     private val socketCounter = AtomicLong(0)
 
     override suspend fun startNewSocket(address: String, sessionId: String?): WebSocket {
@@ -32,12 +42,40 @@ class KtorWebSocketProvider(private val client: HttpClient): WebSocketProvider {
         return object: WebSocket {
             private val incomingFrames = session.incoming.broadcast()
 
-            override val received: Flow<ByteArray>
-                get() = incomingFrames.asFlow().map { it.readBytes() }
+            override val received: Flow<ServerWSPacket>
+                get() = incomingFrames.asFlow().mapNotNull {
+                    val packet = when (it) {
+                        is Frame.Binary -> serializers.protobufSerializer.read(ServerWSPacket::class, it.readBytes())
+                        is Frame.Text -> serializers.gson.fromJson(it.readText(), ServerWSPacket::class.java)
+                        is Frame.Close -> {
+                            handleRemoteClose(closeReason = it.readReason())
+                            null
+                        }
+                        else -> null
+                    }
+                    packet?.also {
+                        log.debug("{} >>> {}", address, it)
+                    }
+                }
 
-            override suspend fun send(payload: ByteArray) {
+            @OptIn(ObsoleteCoroutinesApi::class)
+            private suspend fun handleRemoteClose(closeReason: CloseReason?) {
+                when {
+                    closeReason == null -> incomingFrames.cancel()
+                    closeReason.code == 1000.toShort() -> incomingFrames.cancel()
+                    else -> {
+                        log.error("{} closed session with $closeReason")
+                        incomingFrames.close(IllegalStateException("Unexpected close reason: $closeReason"))
+                    }
+                }
+            }
+
+            override suspend fun send(payload: ClientWSPacket) {
                 log.debug("{} <<< {}", address, payload)
-                session.send(payload)
+                when (apiClientConfig.mediaType) {
+                    ApiMediaType.PROTOBUF -> session.send(serializers.protobufSerializer.write(payload).bytes())
+                    ApiMediaType.JSON -> session.send(serializers.gson.toJson(payload))
+                }
             }
 
             override suspend fun close() {

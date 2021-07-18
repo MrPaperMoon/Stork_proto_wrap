@@ -3,18 +3,18 @@ package io.stork.client.ktor.ws
 import io.ktor.utils.io.*
 import io.stork.client.util.BackOffTimer
 import io.stork.client.util.ExponentialBackOffTimer
+import io.stork.client.ws.WebSocketProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import org.slf4j.LoggerFactory
 import kotlin.time.ExperimentalTime
 
 class WebSocketSessionFactory(
-    private val webSocketProvider: WebSocketProvider,
+        private val webSocketProvider: WebSocketProvider,
 ) {
-    private val sessionFactory = SessionFactory(webSocketProvider)
+    private val sessionFactory = SocketSessionFactoryImpl(webSocketProvider)
     private val log = LoggerFactory.getLogger(WebSocketSessionFactory::class.java)
 
     fun newReconnectingSession(address: String, sessionId: String, reconnectTimer: BackOffTimer = ExponentialBackOffTimer()): Flow<WebSocketSession> {
@@ -33,11 +33,10 @@ class WebSocketSessionFactory(
 
                     lastSessionId = newSession.sessionId
                     lastSession = newSession
-                    newSession.parsedPackets.first()
                     log.info("WebSocket connection successful")
                     // first packet received which basically means that WS is ok
                     reconnectTimer.reset()
-                    newSession.parsedPackets.collect()
+                    newSession.receivedPackets.collect()
                 } catch (ex: CancellationException) {
                     log.debug("Coroutine cancelled, closing last session... quitting the session creation loop")
                     lastSession?.close()

@@ -26,13 +26,9 @@ class LoggingWebSocketListener(private val socketAddress: String,
         log.debug("{} closed. Code: {}, reason: {}", socketAddress, code, reason)
     }
 
-    override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-        log.debug("{} >>> Bytes: {}", socketAddress, bytes.base64())
-    }
+    override fun onMessage(webSocket: WebSocket, bytes: ByteString) {}
 
-    override fun onMessage(webSocket: WebSocket, text: String) {
-        log.debug("{} >>> {}", socketAddress, text)
-    }
+    override fun onMessage(webSocket: WebSocket, text: String) {}
 
     override fun onFailure(webSocket: WebSocket, throwable: Throwable, response: Response?) {
         val responseDescription = response?.let {

@@ -1,4 +1,4 @@
-package io.stork.client.ktor.ws
+package io.stork.client.ws
 
 interface WebSocketProvider {
     suspend fun startNewSocket(address: String, sessionId: String?): WebSocket

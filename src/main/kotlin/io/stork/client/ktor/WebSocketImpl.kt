@@ -2,24 +2,25 @@ package io.stork.client.ktor
 
 import io.stork.client.ApiClientConfig
 import io.stork.client.SessionManager
-import io.stork.client.ktor.ws.WSPacket
 import io.stork.client.ktor.ws.WebSocketSession
 import io.stork.client.ktor.ws.WebSocketSessionFactory
-import io.stork.client.module.EventWebsocket
+import io.stork.client.module.Websocket
 import io.stork.client.util.launchCatching
-import io.stork.proto.websocket.EchoMessage
-import io.stork.proto.websocket.WebsocketEvent
+import io.stork.proto.notification.Notification
+import io.stork.proto.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 class WebSocketImpl(
     private val config: ApiClientConfig,
     private val sessionManager: SessionManager,
     private val webSocketSessionFactory: WebSocketSessionFactory
-): EventWebsocket {
+): Websocket {
     private val log = LoggerFactory.getLogger("WS")
-    private val watcherScope: CoroutineScope = GlobalScope + Dispatchers.IO
+    private val watcherScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     init {
         sessionManager.sessionTokenChangedSignal.connect {
@@ -31,7 +32,13 @@ class WebSocketImpl(
     private val session: MutableStateFlow<WebSocketSession?> = MutableStateFlow(null)
     private val onSessionMissImpl = MutableSharedFlow<Unit>()
 
-    private var keksSessionSubscription: Job? = null
+    private var sessionSubscription: Job? = null
+        set(value) {
+            field?.cancel()
+            field = value
+        }
+
+    private var sessionStartSubscription: Job? = null
         set(value) {
             field?.cancel()
             field = value
@@ -43,16 +50,18 @@ class WebSocketImpl(
                 value == null -> {
                     log.debug("Drop session")
                     field = null
-                    keksSessionSubscription = null
+                    sessionSubscription = null
+                    sessionStartSubscription = null
                     session.value = null
                 }
                 field == null -> synchronized(session) {
                     field = value
                     log.debug("starting new session establishment lifecycle, id = {}", value.sessionId)
                     val keksSession = webSocketSessionFactory.newReconnectingSession(value.address, value.sessionId)
-                    keksSessionSubscription = watcherScope.launchCatching {
+                    sessionSubscription = watcherScope.launchCatching {
                         keksSession.collect {
                             session.value = it
+                            sessionStartSubscription = it.start(watcherScope)
                             if (it.isNewSession) {
                                 onSessionMissImpl.emit(Unit)
                             }
@@ -77,30 +86,31 @@ class WebSocketImpl(
         wsConnectionParams = null
     }
 
-    override suspend fun sendEcho(echo: EchoMessage): Boolean {
-        return when (val currentSession = session.value) {
-            null -> false
-            else -> {
-                currentSession.send(echo)
-                true
-            }
-        }
+    override suspend fun sendEcho(echo: Echo) {
+        send(ClientWSPacket(echo = echo))
     }
 
-    private val packetsStream: Flow<WSPacket> = session
-        .filterNotNull()
-        .flatMapConcat { it.parsedPackets }
-        .catch {}
+    private val packetsStream: Flow<ServerWSPacket> = session
+            .filterNotNull()
+            .flatMapConcat { it.receivedPackets }
+            .catch {}
 
-    override val receiveEcho: Flow<EchoMessage> = packetsStream
+    override val receiveEcho: Flow<Echo> = packetsStream
         .mapNotNull {
-            (it as? WSPacket.Echo)?.echoMessage
+            it.echo
         }
 
 
-    override val allEvents: Flow<WebsocketEvent> = packetsStream
+    override val notifications: Flow<Notification> = packetsStream
         .mapNotNull {
-            (it as? WSPacket.Event)?.event
+            it.notification
         }
 
+    @OptIn(ExperimentalTime::class)
+    private suspend fun send(packet: ClientWSPacket) {
+        return withTimeout(Duration.minutes(1)) {
+            val currentSession = session.filterNotNull().first()
+            currentSession.send(packet)
+        }
+    }
 }

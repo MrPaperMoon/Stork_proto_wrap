@@ -8,9 +8,11 @@ import io.ktor.client.features.websocket.*
 import io.stork.client.ktor.ProtobufFeature
 import io.stork.client.ktor.StorkKtorResponseValidator
 import io.stork.client.ktor.WebSocketImpl
-import io.stork.client.ktor.ws.OkHttpWebSocketProvider
+import io.stork.client.ktor.ws.KtorWebSocketProvider
+import io.stork.client.okhttp.OkHttpWebSocketProvider
 import io.stork.client.ktor.ws.WebSocketSessionFactory
 import io.stork.client.okhttp.OkHttpFactory
+import io.stork.client.okhttp.Serializers
 
 internal object KtorApiClientFactory {
     fun create(config: ApiClientConfig, sessionManager: SessionManager): ApiClient {
@@ -33,7 +35,7 @@ internal object KtorApiClientFactory {
             }
         }
         val websocket = WebSocketImpl(config, sessionManager, WebSocketSessionFactory(
-            OkHttpWebSocketProvider(client)
+            OkHttpWebSocketProvider(client, config, Serializers())
         ))
         return KtorApiClient(config, ktorClient, sessionManager, websocket)
     }

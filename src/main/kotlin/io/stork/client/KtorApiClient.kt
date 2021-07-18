@@ -49,7 +49,7 @@ internal class KtorApiClient(
     private val config: ApiClientConfig,
     private val client: HttpClient,
     private val sessionManager: SessionManager,
-    override val websocket: EventWebsocket
+    override val websocket: Websocket
 ): ApiClient, SessionManager by sessionManager {
     private val log = LoggerFactory.getLogger("ApiClient")
 

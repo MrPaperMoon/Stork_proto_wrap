@@ -1,8 +1,11 @@
-package io.stork.client.ktor.ws
+package io.stork.client.okhttp
 
-import io.stork.client.okhttp.CompositeWebSocketListener
-import io.stork.client.okhttp.IncomingDataFramesListener
-import io.stork.client.okhttp.LoggingWebSocketListener
+import io.stork.client.ApiClientConfig
+import io.stork.client.ApiMediaType
+import io.stork.client.ws.WebSocket
+import io.stork.client.ws.WebSocketProvider
+import io.stork.proto.websocket.ClientWSPacket
+import io.stork.proto.websocket.ServerWSPacket
 import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -12,8 +15,10 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicLong
 
 class OkHttpWebSocketProvider(
-    private val okHttpClient: OkHttpClient,
-    private val webSocketListener: WebSocketListener? = null
+        private val okHttpClient: OkHttpClient,
+        private val apiClientConfig: ApiClientConfig,
+        private val serializers: Serializers,
+        private val webSocketListener: WebSocketListener? = null,
 ): WebSocketProvider {
     private val socketCounter = AtomicLong(0)
 
@@ -35,19 +40,22 @@ class OkHttpWebSocketProvider(
 
         val logger = LoggingWebSocketListener(address, log)
         val debugger = webSocketListener
-        val packetsReceiver = IncomingDataFramesListener()
+        val packetsReceiver = IncomingDataFramesListener(serializers)
 
         log.info("Opening new websocket, address = {}", realAddress)
         val backingWebSocket =
                 okHttpClient.newWebSocket(socketRequest, CompositeWebSocketListener(logger, debugger, packetsReceiver))
 
         return object: WebSocket {
-            override val received: Flow<ByteArray>
+            override val received: Flow<ServerWSPacket>
                 get() = packetsReceiver.packets
 
-            override suspend fun send(payload: ByteArray) {
+            override suspend fun send(payload: ClientWSPacket) {
                 log.debug("{} <<< {}", address, payload)
-                backingWebSocket.send(payload.toByteString())
+                when (apiClientConfig.mediaType) {
+                    ApiMediaType.PROTOBUF -> backingWebSocket.send(serializers.protobufSerializer.write(payload).bytes().toByteString())
+                    ApiMediaType.JSON -> backingWebSocket.send(serializers.gson.toJson(payload))
+                }
             }
 
             override suspend fun close() {

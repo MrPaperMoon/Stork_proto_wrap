@@ -20,7 +20,7 @@ dependencies {
 
     implementation("org.slf4j:slf4j-api:1.7.30")
     api(project(":kotlin-stork-proto"))
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
     implementation(platform("io.ktor:ktor-bom:1.4.3"))
     implementation("io.ktor:ktor-client-core")
@@ -33,6 +33,8 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.7.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.kotest:kotest-assertions-core:4.6.1")
+    testImplementation("org.apache.logging.log4j:log4j-core:2.14.1")
+    testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
 }
 
 tasks.test {

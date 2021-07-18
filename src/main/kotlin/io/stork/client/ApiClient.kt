@@ -17,7 +17,7 @@ interface ApiClient: SessionManager {
     val rtc: RTC
     val session: Session
     val workspace: Workspace
-    val websocket: EventWebsocket
+    val websocket: Websocket
 
     companion object {
         operator fun invoke(config: ApiClientConfig = ApiClientConfig()): ApiClient {

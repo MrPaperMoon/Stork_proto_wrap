@@ -1,38 +1,56 @@
 package io.stork.client.ktor.ws
 
-import io.stork.client.ktor.ProtobufSerializer
-import io.stork.proto.websocket.EchoMessage
-import io.stork.proto.websocket.WebsocketEvent
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import io.stork.client.ws.WebSocket
+import io.stork.proto.websocket.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import java.io.IOException
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 class WebSocketSessionImpl(private val webSocket: WebSocket,
-                           private val serializer: ProtobufSerializer,
-                           override val sessionId: String): WebSocketSession {
-    private val log = LoggerFactory.getLogger("WS")
-    override val isNewSession: Boolean = true
+                           override val sessionId: String,
+                           initialSessionInfo: NotificationSessionInfo,
+                           ): WebSocketSession {
+    override val isNewSession: Boolean = initialSessionInfo.is_new_connection
+    override val receivedPackets: Flow<ServerWSPacket> = webSocket.received
 
-    override val parsedPackets: Flow<WSPacket> = webSocket.received
-        .map {
-            try {
-                val event = serializer.read(WebsocketEvent::class, it)
-                WSPacket.Event(event)
-            } catch (invalid: IOException) {
-                val echo = serializer.read(EchoMessage::class, it)
-                WSPacket.Echo(echo)
-            }
-        }.onEach {
-            log.info("--> $it")
-        }
+    // TODO send ack
+    @OptIn(ExperimentalTime::class)
+    val lastReceivedNotificationId = receivedPackets.mapNotNull {
+        it.notification?.notification_id
+    }.debounce(Duration.seconds(2))
 
-    override suspend fun send(payload: EchoMessage) {
-        webSocket.send(serializer.write(payload).bytes())
+    override val lastAckedNotificationId: MutableStateFlow<String> = MutableStateFlow(initialSessionInfo.last_ack_notification_id)
+
+    override suspend fun send(packet: ClientWSPacket) {
+        webSocket.send(packet)
     }
 
     override suspend fun close() {
         webSocket.close()
+    }
+
+    override fun start(scope: CoroutineScope): Job {
+        return scope.launch {
+            lastReceivedNotificationId.collect {
+                send(ClientWSPacket(notification_ack = NotificationAck(it)))
+                lastAckedNotificationId.value = it
+            }
+        }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger("WS")
+
+        suspend operator fun invoke(webSocket: WebSocket,
+                                    sessionId: String): WebSocketSessionImpl {
+            log.info("Waiting for session info...")
+            val notificationSessionInfo = webSocket.received.first().notification_info!!
+            log.info("Got session info: {}", notificationSessionInfo)
+            return WebSocketSessionImpl(webSocket, sessionId, notificationSessionInfo)
+        }
     }
 }
