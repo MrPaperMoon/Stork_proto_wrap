@@ -41,7 +41,11 @@ class OkHttpWebSocketEngine(
 
         val logger = LoggingWebSocketListener(address, log)
         val debugger = webSocketListener
-        val packetsReceiver = IncomingDataFramesListener(serializers, log)
+        val packetsReceiver = IncomingDataFramesListener(serializers) {
+            val unknownFields = it.unknownFields
+                .takeIf { it.size > 0 }?.base64()?.let { " + ??? [$it]" } ?: ""
+            log.info("{} --> {}{}", address, it, unknownFields)
+        }
 
         log.info("Opening new websocket, address = {}", realAddress)
         val backingWebSocket =
@@ -49,12 +53,10 @@ class OkHttpWebSocketEngine(
         log.info("Websocket opened")
 
         return object: RawWebSocket {
-            override val received: Flow<ServerWSPacket> = packetsReceiver.packets.onEach {
-                log.info("{} >-> {}", address, it)
-            }
+            override val received: Flow<ServerWSPacket> = packetsReceiver.packets
 
             override suspend fun send(payload: ClientWSPacket) {
-                log.info("{} <-< {}", address, payload)
+                log.info("{} <-- {}", address, payload)
                 when (apiClientConfig.mediaType) {
                     ApiMediaType.PROTOBUF -> backingWebSocket.send(serializers.protobufSerializer.write(payload).bytes().toByteString())
                     ApiMediaType.JSON -> backingWebSocket.send(serializers.gson.toJson(payload))

@@ -13,25 +13,28 @@ import okio.ByteString
 import org.slf4j.Logger
 import java.lang.IllegalStateException
 
-class IncomingDataFramesListener(private val serializers: Serializers, val log: Logger): WebSocketListener() {
+class IncomingDataFramesListener(private val serializers: Serializers, val logPacket: (ServerWSPacket) -> Unit): WebSocketListener() {
     private val packetsChannel: BroadcastChannel<ServerWSPacket> = BroadcastChannel(Channel.CONFLATED)
 
     val packets: Flow<ServerWSPacket> = packetsChannel.asFlow()
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-        if (!packetsChannel.isClosedForSend) {
-            packetsChannel.trySend(
-                serializers.protobufSerializer.read(
-                    ServerWSPacket::class,
-                    bytes.toByteArray()
-                )
+        onPacket(
+            serializers.protobufSerializer.read(
+                ServerWSPacket::class,
+                bytes.toByteArray()
             )
-        }
+        )
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
+        onPacket(serializers.gson.fromJson(text, ServerWSPacket::class.java))
+    }
+
+    private fun onPacket(packet: ServerWSPacket) {
         if (!packetsChannel.isClosedForSend) {
-            packetsChannel.trySend(serializers.gson.fromJson(text, ServerWSPacket::class.java))
+            logPacket(packet)
+            packetsChannel.trySend(packet)
         }
     }
 
