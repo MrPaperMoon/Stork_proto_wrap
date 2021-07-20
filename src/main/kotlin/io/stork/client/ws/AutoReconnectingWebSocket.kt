@@ -3,7 +3,7 @@ package io.stork.client.ws
 import io.stork.client.ApiClientConfig
 import io.stork.client.CloseReason
 import io.stork.client.exceptions.ConnectionClosedException
-import io.stork.client.module.WebSocket
+import io.stork.client.WebSocket
 import io.stork.client.util.BackOffTimer
 import io.stork.client.util.ExponentialBackOffTimer
 import io.stork.client.util.takeUntil

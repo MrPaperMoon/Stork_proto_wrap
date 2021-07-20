@@ -1,7 +1,7 @@
 package io.stork.client.ws
 
 import io.stork.client.ApiClientConfig
-import io.stork.client.module.WebSocket
+import io.stork.client.WebSocket
 
 class ReconnectingWebSocketProvider(
         private val apiClientConfig: ApiClientConfig,

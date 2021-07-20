@@ -1,5 +1,6 @@
 package io.stork.client.module
 
+import io.stork.client.WebSocket
 import io.stork.proto.calls.conference.ConferenceEvent
 import io.stork.proto.calls.rtc.RTCEvent
 import io.stork.proto.chat.ChatEvent

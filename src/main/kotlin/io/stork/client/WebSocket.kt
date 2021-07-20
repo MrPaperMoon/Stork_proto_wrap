@@ -1,6 +1,5 @@
-package io.stork.client.module
+package io.stork.client
 
-import io.stork.client.CloseReason
 import io.stork.proto.notification.Notification
 import io.stork.proto.websocket.Echo
 import io.stork.proto.websocket.NotificationAck
