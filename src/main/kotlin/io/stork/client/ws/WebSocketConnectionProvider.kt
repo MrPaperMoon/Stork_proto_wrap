@@ -22,9 +22,9 @@ class WebSocketConnectionProvider(
 
         return withTimeoutOrNull(timeout) {
             val webSocket = webSocketEngine.startNewSocket(address, sessionId)
-            log.info("Waiting for session info...")
+            log.info("WS: Waiting for session info...")
             val notificationSessionInfo = webSocket.received.first().notification_info!!
-            log.info("Got session info: {}", notificationSessionInfo)
+            log.info("WS: Got session info: {}", notificationSessionInfo)
             WebSocketConnection(sessionId, notificationSessionInfo, webSocket)
         } ?: throw TimeoutException("Not received any system packet within $timeout timeout")
     }

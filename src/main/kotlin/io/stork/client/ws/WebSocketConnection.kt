@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.*
 
 class WebSocketConnection(
         override val sessionId: String,
-        private val notificationSessionInfo: NotificationSessionInfo,
+        notificationSessionInfo: NotificationSessionInfo,
         private val rawWebSocket: RawWebSocket
 ): WebSocket {
     override val isNewSession: Flow<Boolean> = flowOf(notificationSessionInfo.is_new_connection)

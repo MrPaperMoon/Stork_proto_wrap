@@ -6,7 +6,6 @@ import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.WebSocket
 import io.stork.client.util.BackOffTimer
 import io.stork.client.util.ExponentialBackOffTimer
-import io.stork.client.util.takeUntil
 import io.stork.client.util.takeWhile
 import io.stork.proto.notification.Notification
 import io.stork.proto.websocket.Echo
@@ -38,19 +37,21 @@ class AutoReconnectingWebSocket(
             try {
                 val newWebSocket = underlyingWebSocketProvider.startWebSocket(sessionId)
                 currentWebSocket.value = newWebSocket
+                log.info("WS: established")
                 reconnectTimer.reset()
                 val closeReason = newWebSocket.closeReason.filterNotNull().first()
                 if (closeReason is CloseReason.ExceptionalClose) {
+                    log.info("WS: closed, reason: {}", closeReason)
                     throw closeReason.cause
                 }
             } catch (ex: CancellationException) {
-                log.debug("Coroutine cancelled, closing last session... quitting the session creation loop")
+                log.debug("WS: Coroutine cancelled, closing last session... quitting the session creation loop")
                 currentWebSocket.getAndUpdate { null }?.close()
                 break
             } catch (ex: Exception) {
-                log.error("Unknown session error: ", ex)
+                log.error("WS: Unknown session error: ", ex)
                 val retryTimeout = reconnectTimer.nextTimeout()
-                log.info("Will retry after timeout: {}", retryTimeout)
+                log.info("WS: Will retry after timeout: {}", retryTimeout)
                 delay(retryTimeout.inWholeMilliseconds)
             }
         }

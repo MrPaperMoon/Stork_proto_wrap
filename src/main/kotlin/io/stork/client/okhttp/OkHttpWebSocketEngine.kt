@@ -7,6 +7,7 @@ import io.stork.client.ws.engine.WebSocketEngine
 import io.stork.proto.websocket.ClientWSPacket
 import io.stork.proto.websocket.ServerWSPacket
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onEach
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocketListener
@@ -40,18 +41,20 @@ class OkHttpWebSocketEngine(
 
         val logger = LoggingWebSocketListener(address, log)
         val debugger = webSocketListener
-        val packetsReceiver = IncomingDataFramesListener(serializers)
+        val packetsReceiver = IncomingDataFramesListener(serializers, log)
 
         log.info("Opening new websocket, address = {}", realAddress)
         val backingWebSocket =
                 okHttpClient.newWebSocket(socketRequest, CompositeWebSocketListener(logger, debugger, packetsReceiver))
+        log.info("Websocket opened")
 
         return object: RawWebSocket {
-            override val received: Flow<ServerWSPacket>
-                get() = packetsReceiver.packets
+            override val received: Flow<ServerWSPacket> = packetsReceiver.packets.onEach {
+                log.info("{} >-> {}", address, it)
+            }
 
             override suspend fun send(payload: ClientWSPacket) {
-                log.debug("{} <<< {}", address, payload)
+                log.info("{} <-< {}", address, payload)
                 when (apiClientConfig.mediaType) {
                     ApiMediaType.PROTOBUF -> backingWebSocket.send(serializers.protobufSerializer.write(payload).bytes().toByteString())
                     ApiMediaType.JSON -> backingWebSocket.send(serializers.gson.toJson(payload))
