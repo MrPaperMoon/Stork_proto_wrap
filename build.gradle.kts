@@ -6,12 +6,34 @@ plugins {
     `java-library`
     idea
     kotlin("jvm") version "1.5.10"
+    id("com.squareup.wire") version "3.7.0"
+}
+
+wire {
+    kotlin {
+        javaInterop = true
+    }
+}
+
+kotlin {
+    sourceSets["main"].apply {
+        kotlin.srcDir("build/generated/source/wire")
+    }
+}
+
+idea.module {
+    sourceDirs = sourceDirs + file("src/main/proto")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
+        jvmTarget = "1.8"
         freeCompilerArgs = freeCompilerArgs + "-Xallow-result-return-type"
     }
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
@@ -19,7 +41,9 @@ dependencies {
     implementation(kotlin("reflect"))
 
     implementation("org.slf4j:slf4j-api:1.7.30")
-    api(project(":kotlin-stork-proto"))
+    api("com.squareup.wire:wire-runtime:3.7.0")
+    api("com.squareup.wire:wire-grpc-client:3.7.0")
+    api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.10")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
     implementation(platform("io.ktor:ktor-bom:1.4.3"))

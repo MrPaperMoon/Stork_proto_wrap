@@ -12,5 +12,3 @@ pluginManagement {
         }
     }
 }
-
-include(":kotlin-stork-proto")
