@@ -5,6 +5,8 @@ import io.stork.client.ws.WebSocketProvider
 
 
 interface ApiClient: SessionManager, WebSocketProvider {
+    fun getConfig(): ApiClientConfig
+
     val account: Account
     val auth: Auth
     val avatar: Avatar

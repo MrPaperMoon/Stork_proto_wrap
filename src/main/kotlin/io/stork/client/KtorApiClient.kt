@@ -102,6 +102,7 @@ internal class KtorApiClient(
         return getAndLogResult(response)
     }
 
+    override fun getConfig(): ApiClientConfig = config
 
     override val account: Account = object: Account {
         override suspend fun list(body: AccountsListRequest): ApiResult<AccountsListResponse> =
@@ -343,6 +344,14 @@ internal class KtorApiClient(
     override val session: Session = object: Session {
         override suspend fun generate(body: GenerateSessionRequest): ApiResult<GenerateSessionResponse> {
             return makeApiCall("session.generate", body)
+        }
+
+        override suspend fun updateClientSystemInfo(body: UpdateClientSystemInfoRequest): ApiResult<UpdateClientSystemInfoResponse> {
+            return makeApiCall("session.updateClientSystemInfo", body)
+        }
+
+        override suspend fun updateTimezone(body: UpdateTimezoneRequest): ApiResult<UpdateTimezoneResponse> {
+            return makeApiCall("session.updateTimezone", body)
         }
 
         override suspend fun logout(body: LogoutRequest): ApiResult<LogoutResponse> {

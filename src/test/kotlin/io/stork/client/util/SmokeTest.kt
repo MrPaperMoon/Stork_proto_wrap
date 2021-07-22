@@ -25,7 +25,7 @@ class SmokeTest {
     private val generateSessionRequest = GenerateSessionRequest(
             installation_id = "kotlin-api-client-test"
     )
-    private val selectedServer = Servers.staging
+    private val selectedServer = StorkServers.staging
 
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)

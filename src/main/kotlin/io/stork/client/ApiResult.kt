@@ -3,6 +3,7 @@ package io.stork.client
 import io.stork.client.exceptions.AuthenticationException
 import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
+import io.stork.proto.error.AuthenticationError
 import io.stork.proto.error.UnhandledError
 
 sealed class ApiResult<out T: Any> {
@@ -37,4 +38,11 @@ sealed class ApiResult<out T: Any> {
             return UnknownError(ex.asUnhandledError())
         }
     }
+}
+
+fun <T : Any, U: Any> ApiResult<T>.map(mapper: (T) -> U): ApiResult<U> = when (this) {
+    is ApiResult.Success -> ApiResult.Success(mapper(response))
+    is ApiResult.AuthenticationError -> this
+    is ApiResult.UnknownError -> this
+    is ApiResult.ValidationError -> this
 }
