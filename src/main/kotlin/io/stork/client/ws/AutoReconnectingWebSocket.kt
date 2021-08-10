@@ -7,7 +7,7 @@ import io.stork.client.WebSocket
 import io.stork.client.util.BackOffTimer
 import io.stork.client.util.ExponentialBackOffTimer
 import io.stork.client.util.takeWhile
-import io.stork.proto.notification.Notification
+import io.stork.proto.client.notifications.Notification
 import io.stork.proto.websocket.Echo
 import io.stork.proto.websocket.NotificationAck
 import kotlinx.coroutines.*

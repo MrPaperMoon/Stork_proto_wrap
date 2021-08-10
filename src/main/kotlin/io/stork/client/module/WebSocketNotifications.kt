@@ -4,11 +4,11 @@ import io.stork.client.WebSocket
 import io.stork.proto.calls.conference.ConferenceEvent
 import io.stork.proto.calls.rtc.RTCEvent
 import io.stork.proto.chat.ChatEvent
+import io.stork.proto.client.profile.profile.ProfileEvent
 import io.stork.proto.client.recordings.recording.RecordingEvent
 import io.stork.proto.client.workspace.WorkspaceEvent
 import io.stork.proto.files.file.FileEvent
 import io.stork.proto.member.MemberEvent
-import io.stork.proto.profile.ProfileEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 

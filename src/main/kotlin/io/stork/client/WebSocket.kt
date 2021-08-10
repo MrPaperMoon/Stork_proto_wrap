@@ -1,6 +1,6 @@
 package io.stork.client
 
-import io.stork.proto.notification.Notification
+import io.stork.proto.client.notifications.Notification
 import io.stork.proto.websocket.Echo
 import io.stork.proto.websocket.NotificationAck
 import kotlinx.coroutines.flow.Flow

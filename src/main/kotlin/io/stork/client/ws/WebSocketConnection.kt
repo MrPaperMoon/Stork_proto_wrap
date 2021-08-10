@@ -5,7 +5,7 @@ import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.WebSocket
 import io.stork.client.util.takeWhile
 import io.stork.client.ws.engine.RawWebSocket
-import io.stork.proto.notification.Notification
+import io.stork.proto.client.notifications.Notification
 import io.stork.proto.websocket.*
 import kotlinx.coroutines.flow.*
 

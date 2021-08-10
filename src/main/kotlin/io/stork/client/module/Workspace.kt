@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.workspace.*
+import io.stork.proto.client.workspace.*
 
 interface Workspace {
     suspend fun join(body: JoinWorkspaceRequest): ApiResult<JoinWorkspaceResponse>

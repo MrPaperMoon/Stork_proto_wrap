@@ -40,7 +40,7 @@ import io.stork.proto.member.MemberListResponse
 import io.stork.proto.publicProfile.PublicProfileListRequest
 import io.stork.proto.publicProfile.PublicProfileListResponse
 import io.stork.proto.session.*
-import io.stork.proto.workspace.*
+import io.stork.proto.client.workspace.*
 import okhttp3.MultipartBody
 import org.slf4j.LoggerFactory
 import java.io.File
