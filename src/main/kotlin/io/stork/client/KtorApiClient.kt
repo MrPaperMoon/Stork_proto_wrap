@@ -262,6 +262,10 @@ internal class KtorApiClient(
     }
 
     override val file: io.stork.client.module.File = object: io.stork.client.module.File {
+        override fun getFileUrl(fileId: String): String {
+            return "${config.apiBaseUrl}/file.download/${fileId}"
+        }
+
         override suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): ApiResult<GetFilePreSignedUrlResponse> {
             return makeApiCall("file.getPreSignedUrl", body)
         }

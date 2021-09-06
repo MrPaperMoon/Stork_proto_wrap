@@ -4,6 +4,8 @@ import io.stork.client.ApiResult
 import io.stork.proto.files.file.*
 
 interface File {
+    fun getFileUrl(fileId: String): String
+
     suspend fun getPreSignedUrl(body: GetFilePreSignedUrlRequest): ApiResult<GetFilePreSignedUrlResponse>
 
     suspend fun startMultipart(body: UploadFileRequest): ApiResult<StartMultipartFileUploadResponse>
