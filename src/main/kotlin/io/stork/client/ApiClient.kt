@@ -23,7 +23,11 @@ interface ApiClient: SessionManager, WebSocketProvider {
 
     companion object {
         operator fun invoke(config: ApiClientConfig = ApiClientConfig()): ApiClient {
-            val sessionManager: SessionManager = SessionManagerImpl()
+            val sessionManager: SessionManager = BasicSessionManager()
+            return ApiClient(config, sessionManager)
+        }
+
+        operator fun invoke(config: ApiClientConfig = ApiClientConfig(), sessionManager: SessionManager): ApiClient {
             return KtorApiClientFactory.create(config, sessionManager)
         }
     }

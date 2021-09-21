@@ -2,7 +2,7 @@ package io.stork.client
 
 import io.stork.client.util.SignalSource
 
-internal class SessionManagerImpl : SessionManager {
+class BasicSessionManager : SessionManager {
     override var sessionJwtToken: String? = null
         set(value) {
             field = value
