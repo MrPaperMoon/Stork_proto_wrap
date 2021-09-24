@@ -8,9 +8,9 @@ import io.kotest.matchers.string.beBlank
 import io.kotest.matchers.types.instanceOf
 import io.stork.client.*
 import io.stork.client.exceptions.ConnectionClosedException
-import io.stork.proto.auth.LoginRequest
-import io.stork.proto.session.GenerateSessionRequest
-import io.stork.proto.session.GenerateSessionResponse
+import io.stork.proto.client.auth.auth.LoginRequest
+import io.stork.proto.client.session.session.GenerateSessionRequest
+import io.stork.proto.client.session.session.GenerateSessionResponse
 import io.stork.proto.websocket.Echo
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -21,16 +21,23 @@ import org.junit.jupiter.params.provider.EnumSource
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class SmokeTest {
     private val generateSessionRequest = GenerateSessionRequest(
             installation_id = "kotlin-api-client-test"
     )
     private val selectedServer = StorkServers.staging
+    private lateinit var sessionManager: BasicSessionProvider
+
+    private fun createApiClient(mediaType: ApiMediaType): ApiClient {
+        sessionManager = BasicSessionProvider()
+        return ApiClient(ApiClientConfig(domainName = selectedServer.address, mediaType = mediaType), sessionManager = sessionManager)
+    }
 
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)
     fun itCanDoSuccessfulRestApiCall(mediaType: ApiMediaType) = suspendTest {
-        val client = ApiClient(ApiClientConfig(selectedServer, mediaType = mediaType))
+        val client = createApiClient(mediaType)
         val response = client.session.generate(generateSessionRequest)
         response shouldBe instanceOf<ApiResult.Success<GenerateSessionResponse>>()
         val result = response.getOrThrow()
@@ -40,7 +47,7 @@ class SmokeTest {
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)
     fun itCanHandleFailedRestApiCall(mediaType: ApiMediaType) = suspendTest {
-        val client = ApiClient(ApiClientConfig(selectedServer, mediaType = mediaType))
+        val client = createApiClient(mediaType)
         val loginResult = client.auth.login(
                 LoginRequest(
                         email = "foo_bar@foo_bar.com",
@@ -53,7 +60,7 @@ class SmokeTest {
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)
     fun itCanDoBasicUsageOfWebSocket(mediaType: ApiMediaType) = suspendTest {
-        val client = ApiClient(ApiClientConfig(selectedServer, mediaType = mediaType))
+        val client = createApiClient(mediaType)
         val sessionId = client.generateSessionId()
 
         val echoMessage = "Hello, ☃"
@@ -70,7 +77,7 @@ class SmokeTest {
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)
     fun itCanDeliverSessionInfoOfWebSocket(mediaType: ApiMediaType) = suspendTest {
-        val client = ApiClient(ApiClientConfig(selectedServer, mediaType = mediaType))
+        val client = createApiClient(mediaType)
         val sessionId = client.generateSessionId()
 
         val webSocket = client.startWebSocket(sessionId)
@@ -82,11 +89,10 @@ class SmokeTest {
         newWebSocket.close()
     }
 
-    @OptIn(ExperimentalTime::class)
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)
     fun youCantUseClosedWebSocket(mediaType: ApiMediaType) = suspendTest {
-        val client = ApiClient(ApiClientConfig(selectedServer, mediaType = mediaType))
+        val client = createApiClient(mediaType)
         val sessionId = client.generateSessionId()
 
         val webSocket = client.startWebSocket(sessionId)
@@ -99,11 +105,10 @@ class SmokeTest {
         }
     }
 
-    @OptIn(ExperimentalTime::class)
     @ParameterizedTest
     @EnumSource(ApiMediaType::class)
     fun closedWebSocketClosesReceivedFlows(mediaType: ApiMediaType) = suspendTest {
-        val client = ApiClient(ApiClientConfig(selectedServer, mediaType = mediaType))
+        val client = createApiClient(mediaType)
         val sessionId = client.generateSessionId()
 
         val webSocket = client.startWebSocket(sessionId)
@@ -120,13 +125,11 @@ class SmokeTest {
         }
     }
 
-
-
     private suspend fun ApiClient.generateSessionId(): String {
         val response = session.generate(generateSessionRequest).getOrThrow()
         val myJwtToken = response.jwt_token
         myJwtToken shouldNotBe null
-        sessionJwtToken = myJwtToken
+        sessionManager.sessionId = myJwtToken
         return myJwtToken
     }
 }

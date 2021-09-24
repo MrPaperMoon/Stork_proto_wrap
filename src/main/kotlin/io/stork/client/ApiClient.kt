@@ -4,7 +4,7 @@ import io.stork.client.module.*
 import io.stork.client.ws.WebSocketProvider
 
 
-interface ApiClient: SessionManager, WebSocketProvider {
+interface ApiClient: WebSocketProvider, SessionProvider {
     fun getConfig(): ApiClientConfig
 
     val account: Account
@@ -22,13 +22,8 @@ interface ApiClient: SessionManager, WebSocketProvider {
     val workspace: Workspace
 
     companion object {
-        operator fun invoke(config: ApiClientConfig = ApiClientConfig()): ApiClient {
-            val sessionManager: SessionManager = BasicSessionManager()
-            return ApiClient(config, sessionManager)
-        }
-
-        operator fun invoke(config: ApiClientConfig = ApiClientConfig(), sessionManager: SessionManager): ApiClient {
-            return KtorApiClientFactory.create(config, sessionManager)
+        operator fun invoke(config: ApiClientConfig = ApiClientConfig(), sessionProvider: SessionProvider): ApiClient {
+            return KtorApiClientFactory.create(config, sessionProvider)
         }
     }
 }

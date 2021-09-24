@@ -7,17 +7,14 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.websocket.*
 import io.stork.client.ktor.ProtobufFeature
 import io.stork.client.ktor.StorkKtorResponseValidator
-import io.stork.client.okhttp.OkHttpWebSocketEngine
 import io.stork.client.okhttp.OkHttpFactory
+import io.stork.client.okhttp.OkHttpWebSocketEngine
 import io.stork.client.okhttp.Serializers
 import io.stork.client.ws.ReconnectingWebSocketProvider
-import io.stork.client.ws.WebSocketConnectionProvider
-import io.stork.client.ws.WebSocketProvider
-import io.stork.client.ws.engine.WebSocketEngine
 
 internal object KtorApiClientFactory {
-    fun create(config: ApiClientConfig, sessionManager: SessionManager): ApiClient {
-        val client = OkHttpFactory.createOkHttp(config, sessionManager)
+    fun create(config: ApiClientConfig, sessionProvider: SessionProvider): ApiClient {
+        val client = OkHttpFactory.createOkHttp(config, sessionProvider)
         val ktorEngine = OkHttp.create {
             preconfigured = client
         }
@@ -37,6 +34,6 @@ internal object KtorApiClientFactory {
         }
         val webSocketEngine = OkHttpWebSocketEngine(client, config, Serializers())
         val webSocketProvider = ReconnectingWebSocketProvider(config, webSocketEngine)
-        return KtorApiClient(config, ktorClient, sessionManager, webSocketProvider)
+        return KtorApiClient(config, ktorClient, sessionProvider, webSocketProvider)
     }
 }

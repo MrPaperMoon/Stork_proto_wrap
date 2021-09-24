@@ -20,9 +20,9 @@ class AutoReconnectingWebSocket(
         override val sessionId: String,
         private val apiClientConfig: ApiClientConfig,
         private val underlyingWebSocketProvider: WebSocketProvider,
+        private val webSocketScope: CoroutineScope = CoroutineScope(SupervisorJob())
 ): WebSocket {
     private val log = LoggerFactory.getLogger(AutoReconnectingWebSocket::class.java)
-    private val currentWebSocketScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     override val closeReason: MutableStateFlow<CloseReason?> = MutableStateFlow(null)
 
     private val currentWebSocket: MutableStateFlow<WebSocket?> = MutableStateFlow(null)
@@ -31,28 +31,30 @@ class AutoReconnectingWebSocket(
     }.filterNotNull()
 
     @OptIn(ExperimentalTime::class)
-    private val connectionEstablishingJob: Job = currentWebSocketScope.launch {
-        val reconnectTimer: BackOffTimer = ExponentialBackOffTimer()
-        while (isActive) {
-            try {
-                val newWebSocket = underlyingWebSocketProvider.startWebSocket(sessionId)
-                currentWebSocket.value = newWebSocket
-                log.info("WS: established")
-                reconnectTimer.reset()
-                val closeReason = newWebSocket.closeReason.filterNotNull().first()
-                if (closeReason is CloseReason.ExceptionalClose) {
-                    log.info("WS: closed, reason: {}", closeReason)
-                    throw closeReason.cause
+    private val connectionEstablishingJob: Job = webSocketScope.launch {
+        withContext(Dispatchers.IO) {
+            val reconnectTimer: BackOffTimer = ExponentialBackOffTimer()
+            while (isActive) {
+                try {
+                    val newWebSocket = underlyingWebSocketProvider.startWebSocket(sessionId)
+                    currentWebSocket.value = newWebSocket
+                    log.info("WS: established")
+                    reconnectTimer.reset()
+                    val closeReason = newWebSocket.closeReason.filterNotNull().first()
+                    if (closeReason is CloseReason.ExceptionalClose) {
+                        log.info("WS: closed, reason: {}", closeReason)
+                        throw closeReason.cause
+                    }
+                } catch (ex: CancellationException) {
+                    log.debug("WS: Coroutine cancelled, closing last session... quitting the session creation loop")
+                    currentWebSocket.getAndUpdate { null }?.close()
+                    break
+                } catch (ex: Exception) {
+                    log.error("WS: Unknown session error: ", ex)
+                    val retryTimeout = reconnectTimer.nextTimeout()
+                    log.info("WS: Will retry after timeout: {}", retryTimeout)
+                    delay(retryTimeout.inWholeMilliseconds)
                 }
-            } catch (ex: CancellationException) {
-                log.debug("WS: Coroutine cancelled, closing last session... quitting the session creation loop")
-                currentWebSocket.getAndUpdate { null }?.close()
-                break
-            } catch (ex: Exception) {
-                log.error("WS: Unknown session error: ", ex)
-                val retryTimeout = reconnectTimer.nextTimeout()
-                log.info("WS: Will retry after timeout: {}", retryTimeout)
-                delay(retryTimeout.inWholeMilliseconds)
             }
         }
     }
@@ -83,7 +85,7 @@ class AutoReconnectingWebSocket(
 
     override suspend fun close() {
         if (closeReason.compareAndSet(null, CloseReason.GracefulClose)) {
-            currentWebSocketScope.cancel()
+            webSocketScope.cancel()
         }
     }
 

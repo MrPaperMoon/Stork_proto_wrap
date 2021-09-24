@@ -49,9 +49,9 @@ import java.io.FileOutputStream
 internal class KtorApiClient(
     private val config: ApiClientConfig,
     private val client: HttpClient,
-    private val sessionManager: SessionManager,
+    private val sessionProvider: SessionProvider,
     private val webSocketProvider: WebSocketProvider
-): ApiClient, SessionManager by sessionManager, WebSocketProvider by webSocketProvider {
+): ApiClient, SessionProvider by sessionProvider, WebSocketProvider by webSocketProvider {
     private val log = LoggerFactory.getLogger("ApiClient")
 
     private fun apiCallUrl(path: String): String = config.apiBaseUrl + "/" + path
