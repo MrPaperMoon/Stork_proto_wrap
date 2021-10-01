@@ -17,4 +17,8 @@ interface Workspace {
     suspend fun create(body: CreateWorkspaceRequest): ApiResult<CreateWorkspaceResponse>
 
     suspend fun checkSubdomain(body: CheckWorkspaceSubdomainRequest): ApiResult<CheckWorkspaceSubdomainResponse>
+
+    suspend fun updateDisplayName(body: UpdateWorkspaceDisplayNameRequest): ApiResult<UpdateWorkspaceDisplayNameResponse>
+
+    suspend fun leave(body: LeaveWorkspaceRequest): ApiResult<LeaveWorkspaceResponse>
 }

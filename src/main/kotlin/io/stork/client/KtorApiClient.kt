@@ -399,5 +399,13 @@ internal class KtorApiClient(
         override suspend fun checkSubdomain(body: CheckWorkspaceSubdomainRequest): ApiResult<CheckWorkspaceSubdomainResponse> {
             return makeApiCall("workspace.checkSubdomain", body)
         }
+
+        override suspend fun updateDisplayName(body: UpdateWorkspaceDisplayNameRequest): ApiResult<UpdateWorkspaceDisplayNameResponse> {
+            return makeApiCall("workspace.updateDisplayName", body)
+        }
+
+        override suspend fun leave(body: LeaveWorkspaceRequest): ApiResult<LeaveWorkspaceResponse> {
+            return makeApiCall("workspace.leave", body)
+        }
     }
 }
