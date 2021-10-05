@@ -1,9 +1,9 @@
 package io.stork.client.module
 
 import io.stork.client.*
-import io.stork.proto.avatar.AvatarUploadResponse
-import io.stork.proto.avatar.SetPrimaryAvatarRequest
-import io.stork.proto.avatar.SetPrimaryAvatarResponse
+import io.stork.proto.client.avatar.AvatarUploadResponse
+import io.stork.proto.client.avatar.SetPrimaryAvatarRequest
+import io.stork.proto.client.avatar.SetPrimaryAvatarResponse
 import java.io.File
 
 

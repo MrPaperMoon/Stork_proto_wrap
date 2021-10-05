@@ -1,7 +1,6 @@
 package io.stork.client.exceptions
 
-import io.stork.proto.error.AuthenticationError
-import io.stork.proto.error.ValidationError
+import io.stork.proto.client.error.ValidationError
 
 class ValidationException(val error: ValidationError): StorkApiException(error.describe()) {
     companion object {

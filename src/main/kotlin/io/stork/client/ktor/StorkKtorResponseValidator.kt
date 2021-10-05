@@ -8,7 +8,7 @@ import io.stork.client.ApiResult
 import io.stork.client.exceptions.AuthenticationException
 import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
-import io.stork.proto.error.UnhandledError
+import io.stork.proto.client.error.UnhandledError
 
 fun HttpClientConfig<*>.StorkKtorResponseValidator() {
     expectSuccess = false

@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.calls.conference.*
+import io.stork.proto.client.calls.conference.*
 
 interface Conference {
     suspend fun create(body: CreateConferenceRequest): ApiResult<CreateConferenceResponse>

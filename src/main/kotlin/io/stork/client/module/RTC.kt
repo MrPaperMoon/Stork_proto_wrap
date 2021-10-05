@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.calls.rtc.*
+import io.stork.proto.client.calls.rtc.*
 
 interface RTC {
     suspend fun negotiateConnection(body: RTCConnectionNegotiateRequest): ApiResult<RTCConnectionNegotiateResponse>

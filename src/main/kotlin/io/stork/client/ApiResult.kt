@@ -3,13 +3,12 @@ package io.stork.client
 import io.stork.client.exceptions.AuthenticationException
 import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
-import io.stork.proto.error.AuthenticationError
-import io.stork.proto.error.UnhandledError
+import io.stork.proto.client.error.UnhandledError
 
 sealed class ApiResult<out T: Any> {
     data class Success<T: Any>(val response: T): ApiResult<T>()
-    data class AuthenticationError(val response: io.stork.proto.error.AuthenticationError): ApiResult<Nothing>()
-    data class ValidationError(val response: io.stork.proto.error.ValidationError): ApiResult<Nothing>()
+    data class AuthenticationError(val response: io.stork.proto.client.error.AuthenticationError): ApiResult<Nothing>()
+    data class ValidationError(val response: io.stork.proto.client.error.ValidationError): ApiResult<Nothing>()
     data class UnknownError(val response: UnhandledError): ApiResult<Nothing>()
 
     fun getOrThrow(): T = when (this) {

@@ -1,7 +1,7 @@
 package io.stork.client.okhttp
 
 import io.ktor.http.cio.websocket.*
-import io.stork.proto.websocket.ServerWSPacket
+import io.stork.proto.client.websocket.ServerWSPacket
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -10,8 +10,6 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
-import org.slf4j.Logger
-import java.lang.IllegalStateException
 
 class IncomingDataFramesListener(private val serializers: Serializers, val logPacket: (ServerWSPacket) -> Unit): WebSocketListener() {
     private val packetsChannel: BroadcastChannel<ServerWSPacket> = BroadcastChannel(Channel.CONFLATED)

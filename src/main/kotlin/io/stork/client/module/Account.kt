@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.client.auth.account.*
+import io.stork.proto.client.account.*
 
 interface Account {
     suspend fun list(body: AccountsListRequest): ApiResult<AccountsListResponse>

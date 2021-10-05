@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.files.file.*
+import io.stork.proto.client.file.*
 
 interface File {
     fun getFileUrl(fileId: String): String

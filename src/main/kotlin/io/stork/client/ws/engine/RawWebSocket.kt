@@ -1,7 +1,7 @@
 package io.stork.client.ws.engine
 
-import io.stork.proto.websocket.ClientWSPacket
-import io.stork.proto.websocket.ServerWSPacket
+import io.stork.proto.client.websocket.ClientWSPacket
+import io.stork.proto.client.websocket.ServerWSPacket
 import kotlinx.coroutines.flow.Flow
 
 interface RawWebSocket {

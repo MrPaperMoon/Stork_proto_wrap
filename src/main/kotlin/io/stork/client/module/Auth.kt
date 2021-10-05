@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.client.auth.auth.*
+import io.stork.proto.client.auth.*
 
 interface Auth {
     suspend fun checkEmail(body: CheckEmailRequest): ApiResult<CheckEmailResponse>

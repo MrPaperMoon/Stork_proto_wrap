@@ -9,8 +9,8 @@ import io.stork.client.ApiMediaType
 import io.stork.client.okhttp.Serializers
 import io.stork.client.ws.engine.RawWebSocket
 import io.stork.client.ws.engine.WebSocketEngine
-import io.stork.proto.websocket.ClientWSPacket
-import io.stork.proto.websocket.ServerWSPacket
+import io.stork.proto.client.websocket.ClientWSPacket
+import io.stork.proto.client.websocket.ServerWSPacket
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.broadcast
 import kotlinx.coroutines.flow.Flow

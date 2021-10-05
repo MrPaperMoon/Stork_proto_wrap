@@ -1,12 +1,12 @@
 package io.stork.client.ws
 
 import io.stork.client.CloseReason
-import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.WebSocket
+import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.util.takeWhile
 import io.stork.client.ws.engine.RawWebSocket
 import io.stork.proto.client.notifications.Notification
-import io.stork.proto.websocket.*
+import io.stork.proto.client.websocket.*
 import kotlinx.coroutines.flow.*
 
 class WebSocketConnection(

@@ -8,10 +8,10 @@ import io.kotest.matchers.string.beBlank
 import io.kotest.matchers.types.instanceOf
 import io.stork.client.*
 import io.stork.client.exceptions.ConnectionClosedException
-import io.stork.proto.client.auth.auth.LoginRequest
-import io.stork.proto.client.session.session.GenerateSessionRequest
-import io.stork.proto.client.session.session.GenerateSessionResponse
-import io.stork.proto.websocket.Echo
+import io.stork.proto.client.auth.LoginRequest
+import io.stork.proto.client.session.GenerateSessionRequest
+import io.stork.proto.client.session.GenerateSessionResponse
+import io.stork.proto.client.websocket.Echo
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList

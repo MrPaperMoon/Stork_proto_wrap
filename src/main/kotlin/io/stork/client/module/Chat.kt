@@ -1,7 +1,7 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.chat.*
+import io.stork.proto.client.messaging.chat.*
 
 interface Chat {
     suspend fun get(body: GetChatRequest): ApiResult<GetChatResponse>
