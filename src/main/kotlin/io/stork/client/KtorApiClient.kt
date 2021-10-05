@@ -4,21 +4,21 @@ import com.squareup.wire.AnyMessage
 import com.squareup.wire.Message
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.streams.*
 import io.stork.client.ktor.DefaultProtobufSerializer
 import io.stork.client.ktor.getResult
 import io.stork.client.module.*
 import io.stork.client.module.Account
-import io.stork.client.module.Auth
 import io.stork.client.module.Chat
 import io.stork.client.module.ChatMessage
 import io.stork.client.module.Conference
-import io.stork.client.module.RTC
-import io.stork.client.module.Session
 import io.stork.client.module.Workspace
 import io.stork.client.ws.WebSocketProvider
 import io.stork.proto.avatar.AvatarUploadResponse
@@ -37,11 +37,10 @@ import io.stork.proto.client.recordings.recording.RecordingListResponse
 import io.stork.proto.client.recordings.recording.UpdateRecordingTitleRequest
 import io.stork.proto.client.recordings.recording.UpdateRecordingTitleResponse
 import io.stork.proto.client.session.session.*
+import io.stork.proto.client.workspace.*
 import io.stork.proto.files.file.*
 import io.stork.proto.member.MemberListRequest
 import io.stork.proto.member.MemberListResponse
-import io.stork.proto.client.workspace.*
-import okhttp3.MultipartBody
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileOutputStream
@@ -73,6 +72,31 @@ internal class KtorApiClient(
 
         return result
     }
+
+    private suspend inline fun <reified T : Any> makeMultipartApiCall(
+        path: String,
+        formData: List<PartData>,
+        noinline uploadStatusCallback: UploadStatusCallback? = null
+    ): ApiResult<T> {
+        val url = apiCallUrl(path)
+
+        logRequest(url)
+
+        val response = client.submitFormWithBinaryData<HttpResponse>(
+            url = url,
+            formData = formData
+        ) {
+            // TODO: update ktor to 1.6.4 for this
+            uploadStatusCallback?.let {
+                onUpload { bytesSentTotal, contentLength ->
+                    it(bytesSentTotal, contentLength)
+                }
+            }
+        }
+
+        return getAndLogResult(response)
+    }
+
 
     private suspend inline fun <reified T : Any> makeApiCall(path: String, body: Message<*, *>): ApiResult<T> {
         val url = apiCallUrl(path)
@@ -146,9 +170,21 @@ internal class KtorApiClient(
 
     }
     override val avatar: Avatar = object: Avatar {
-        override suspend fun uploadFile(file: MultipartBody.Part): ApiResult<AvatarUploadResponse> {
-            TODO()
+        override suspend fun uploadFile(file: BinaryContent, uploadStatusCallback: UploadStatusCallback?): ApiResult<AvatarUploadResponse> {
+            return makeMultipartApiCall("avatar.upload", formData {
+                appendInput(
+                    key = "file",
+                    headers = headersOf(
+                        HttpHeaders.ContentType to file.contentType,
+                        HttpHeaders.ContentDisposition to "filename=${file.name}"
+                    ),
+                    size = file.size,
+                ) {
+                    file.open().asInput()
+                }
+            }, uploadStatusCallback)
         }
+
 
         override suspend fun downloadAvatar(avatarId: String, size: AvatarSize, targetFile: File): File {
             return client.get<HttpStatement>("avatar.download/$avatarId/${size.raw}").execute { response: HttpResponse ->
@@ -292,9 +328,9 @@ internal class KtorApiClient(
                 url = url,
                 formData = formData {
                     append("uploadFileRequest", DefaultProtobufSerializer.write(body).bytes())
-                    append("content", content.readBytes(), Headers.build {
-                        append(HttpHeaders.ContentDisposition, "filename=${content.name}")
-                    })
+                    append("content", content.readBytes(), headersOf(
+                        HttpHeaders.ContentDisposition to "filename=${content.name}"
+                    ))
                 }
             )
             return getAndLogResult<UploadFileResponse>(response)
@@ -409,3 +445,7 @@ internal class KtorApiClient(
         }
     }
 }
+
+private fun headersOf(vararg pairs: Pair<String, String>): Headers = headersOf(
+    *pairs.map { it.first to listOf(it.second) }.toTypedArray()
+)

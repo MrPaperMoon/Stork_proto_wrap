@@ -46,7 +46,7 @@ dependencies {
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.10")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
-    implementation(platform("io.ktor:ktor-bom:1.4.3"))
+    implementation(platform("io.ktor:ktor-bom:1.6.4"))
     implementation("io.ktor:ktor-client-core")
     implementation("io.ktor:ktor-client-gson")
     implementation("com.squareup.wire:wire-gson-support:3.7.0")
