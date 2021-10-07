@@ -27,11 +27,11 @@ class SmokeTest {
             installation_id = "kotlin-api-client-test"
     )
     private val selectedServer = StorkServers.staging
-    private lateinit var sessionManager: BasicSessionProvider
+    private lateinit var sessionProvider: BasicSessionProvider
 
     private fun createApiClient(mediaType: ApiMediaType): ApiClient {
-        sessionManager = BasicSessionProvider()
-        return ApiClient(ApiClientConfig(domainName = selectedServer.address, mediaType = mediaType), sessionManager = sessionManager)
+        sessionProvider = BasicSessionProvider()
+        return ApiClient(ApiClientConfig(domainName = selectedServer.address, mediaType = mediaType), sessionProvider = sessionProvider)
     }
 
     @ParameterizedTest
@@ -129,7 +129,7 @@ class SmokeTest {
         val response = session.generate(generateSessionRequest).getOrThrow()
         val myJwtToken = response.jwt_token
         myJwtToken shouldNotBe null
-        sessionManager.sessionId = myJwtToken
+        sessionProvider.sessionId = myJwtToken
         return myJwtToken
     }
 }

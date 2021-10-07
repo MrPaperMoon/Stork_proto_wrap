@@ -11,6 +11,7 @@ import io.stork.client.exceptions.ValidationException
 import io.stork.proto.error.UnhandledError
 
 fun HttpClientConfig<*>.StorkKtorResponseValidator() {
+    expectSuccess = false
     HttpResponseValidator {
         validateResponse {} // always ok - we handle errors manually due to receive() call recursion
     }
