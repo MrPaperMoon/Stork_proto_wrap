@@ -8,4 +8,5 @@ interface ChatMessage {
     suspend fun send(body: SendChatMessageRequest): ApiResult<SendChatMessageResponse>
     suspend fun edit(body: EditChatMessageRequest): ApiResult<EditChatMessageResponse>
     suspend fun toggleReaction(body: ToggleChatMessageReactionRequest): ApiResult<ToggleChatMessageReactionResponse>
+    suspend fun remove(body: RemoveChatMessageRequest): ApiResult<RemoveChatMessageResponse>
 }

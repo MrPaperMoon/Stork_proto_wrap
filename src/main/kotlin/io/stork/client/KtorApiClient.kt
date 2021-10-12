@@ -260,6 +260,9 @@ internal class KtorApiClient(
             return makeApiCall("chat.message.toggleReaction", body)
         }
 
+        override suspend fun remove(body: RemoveChatMessageRequest): ApiResult<RemoveChatMessageResponse> {
+            return makeApiCall("chat.message.remove", body)
+        }
     }
     override val conference: Conference = object: Conference {
         override suspend fun create(body: CreateConferenceRequest): ApiResult<CreateConferenceResponse> {
