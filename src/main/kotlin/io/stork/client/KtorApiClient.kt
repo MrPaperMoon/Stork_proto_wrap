@@ -17,6 +17,7 @@ import io.stork.client.ktor.getResult
 import io.stork.client.module.*
 import io.stork.client.module.Account
 import io.stork.client.module.Chat
+import io.stork.client.module.ChatActivity
 import io.stork.client.module.ChatMessage
 import io.stork.client.module.Conference
 import io.stork.client.module.Workspace
@@ -241,6 +242,14 @@ internal class KtorApiClient(
 
         override suspend fun search(body: SearchChatRequest): ApiResult<SearchChatResponse> {
             return makeApiCall("chat.search", body)
+        }
+    }
+    override val chatActivity: ChatActivity = object: ChatActivity {
+        override suspend fun start(body: StartChatActivityRequest): ApiResult<StartChatActivityResponse> {
+            return makeApiCall("chat.activity.start", body)
+        }
+        override suspend fun stop(body: StopChatActivityRequest): ApiResult<StopChatActivityResponse> {
+            return makeApiCall("chat.activity.stop", body)
         }
     }
     override val chatMessage: ChatMessage = object: ChatMessage {

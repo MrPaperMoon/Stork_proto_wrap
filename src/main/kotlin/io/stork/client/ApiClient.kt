@@ -11,6 +11,7 @@ interface ApiClient: WebSocketProvider, SessionProvider {
     val auth: Auth
     val avatar: Avatar
     val chat: Chat
+    val chatActivity: ChatActivity
     val chatMessage: ChatMessage
     val conference: Conference
     val file: File
