@@ -78,7 +78,6 @@ class AutoReconnectingWebSocket(
     override val receiveEcho: Flow<Echo> =
             connectedWebSocket.flatMapLatest { it.receiveEcho }
 
-
     override val notifications: Flow<Notification> =
             connectedWebSocket.flatMapLatest { it.notifications }
 
@@ -94,8 +93,8 @@ class AutoReconnectingWebSocket(
             closeReason.value?.let {
                 throw ConnectionClosedException(closedReason = it, message = "Connection is already closed due to $it")
             }
-            val webSocket = connectedWebSocket.first()
-            receiver(webSocket)
+            val webSocket = connectedWebSocket.firstOrNull()
+            webSocket?.let { receiver(it) }
         }
     }
 }
