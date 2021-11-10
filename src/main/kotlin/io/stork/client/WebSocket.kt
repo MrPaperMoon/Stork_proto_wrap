@@ -6,7 +6,7 @@ import io.stork.proto.client.websocket.NotificationAck
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
-interface WebSocket {
+interface WebSocket: ApiNotificationsSource {
     val sessionId: String
     val isNewSession: Flow<Boolean>
     val lastAckReceivedByServer: Flow<String?>
@@ -16,7 +16,7 @@ interface WebSocket {
 
     suspend fun sendNotificationAck(notificationAck: NotificationAck)
 
-    val notifications: Flow<Notification>
+    override val notifications: Flow<Notification>
 
     val closeReason: StateFlow<CloseReason?>
     suspend fun close()

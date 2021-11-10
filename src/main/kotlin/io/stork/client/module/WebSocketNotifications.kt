@@ -1,6 +1,6 @@
 package io.stork.client.module
 
-import io.stork.client.WebSocket
+import io.stork.client.ApiNotificationsSource
 import io.stork.proto.client.calls.conference.ConferenceEvent
 import io.stork.proto.client.calls.rtc.RTCEvent
 import io.stork.proto.client.file.FileEvent
@@ -13,41 +13,41 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 
 
-val WebSocket.webRTCEvents: Flow<RTCEvent>
+val ApiNotificationsSource.webRTCEvents: Flow<RTCEvent>
     get() = notifications.mapNotNull {
         it.rtc_event
     }
-val WebSocket.conferenceEvents: Flow<ConferenceEvent>
+val ApiNotificationsSource.conferenceEvents: Flow<ConferenceEvent>
     get() = notifications.mapNotNull {
         it.conference_event
     }
 
-val WebSocket.memberEvents: Flow<MemberEvent>
+val ApiNotificationsSource.memberEvents: Flow<MemberEvent>
     get() = notifications.mapNotNull {
         it.member_event
     }
 
-val WebSocket.profileEvents: Flow<ProfileEvent>
+val ApiNotificationsSource.profileEvents: Flow<ProfileEvent>
     get() = notifications.mapNotNull {
         it.profile_event
     }
 
-val WebSocket.workspaceEvents: Flow<WorkspaceEvent>
+val ApiNotificationsSource.workspaceEvents: Flow<WorkspaceEvent>
     get() = notifications.mapNotNull {
         it.workspace_event
     }
 
-val WebSocket.recordingEvents: Flow<RecordingEvent>
+val ApiNotificationsSource.recordingEvents: Flow<RecordingEvent>
     get() = notifications.mapNotNull {
         it.recording_event
     }
 
-val WebSocket.chatEvents: Flow<ChatEvent>
+val ApiNotificationsSource.chatEvents: Flow<ChatEvent>
     get() = notifications.mapNotNull {
         it.chat_event
     }
 
-val WebSocket.fileEvents: Flow<FileEvent>
+val ApiNotificationsSource.fileEvents: Flow<FileEvent>
     get() = notifications.mapNotNull {
         it.file_event
     }

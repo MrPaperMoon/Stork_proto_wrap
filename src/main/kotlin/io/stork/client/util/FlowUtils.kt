@@ -14,6 +14,16 @@ fun <T> Flow<T>.repeat(): Flow<T> = flow {
     }
 }
 
+suspend fun <T> Flow<T>.safeFirst(): T {
+    val stacktrace = RuntimeException("Flow.first() called here")
+    try {
+        return first()
+    } catch (ex: Exception) {
+        stacktrace.addSuppressed(ex)
+        throw stacktrace
+    }
+}
+
 fun <T> CoroutineScope.launchCatching(context: CoroutineContext = EmptyCoroutineContext,
                                       coroutine: suspend CoroutineScope.() -> T): Job {
     return launch(context) {
