@@ -10,6 +10,7 @@ interface WebSocket: ApiNotificationsSource {
     val sessionId: String
     val isNewSession: Flow<Boolean>
     val lastAckReceivedByServer: Flow<String?>
+    val state: StateFlow<WebSocketState>
 
     suspend fun sendEcho(echo: Echo)
     val receiveEcho: Flow<Echo>

@@ -24,6 +24,19 @@ suspend fun <T> Flow<T>.safeFirst(): T {
     }
 }
 
+fun CoroutineScope.launchWithStacktrace(work: suspend () -> Unit): Job {
+    val stacktrace = RuntimeException("CoroutineScope.launch() called here")
+    return launch {
+        try {
+            work()
+        } catch (ex: Exception) {
+            stacktrace.addSuppressed(ex)
+            throw ex
+        }
+    }
+}
+
+
 fun <T> CoroutineScope.launchCatching(context: CoroutineContext = EmptyCoroutineContext,
                                       coroutine: suspend CoroutineScope.() -> T): Job {
     return launch(context) {

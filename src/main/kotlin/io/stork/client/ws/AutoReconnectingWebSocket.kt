@@ -3,6 +3,7 @@ package io.stork.client.ws
 import io.stork.client.ApiClientConfig
 import io.stork.client.CloseReason
 import io.stork.client.WebSocket
+import io.stork.client.WebSocketState
 import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.util.BackOffTimer
 import io.stork.client.util.ExponentialBackOffTimer
@@ -29,15 +30,20 @@ class AutoReconnectingWebSocket(
         it == null
     }.filterNotNull()
 
+    private val _state: MutableStateFlow<WebSocketState> = MutableStateFlow(WebSocketState.DISCONNECTED)
+    override val state: StateFlow<WebSocketState> = _state.asStateFlow()
+
     @OptIn(ExperimentalTime::class)
     private val connectionEstablishingJob: Job = webSocketScope.launch {
         withContext(Dispatchers.IO) {
             val reconnectTimer: BackOffTimer = ExponentialBackOffTimer()
             while (isActive) {
                 try {
+                    _state.value = WebSocketState.CONNECTING
                     val newWebSocket = underlyingWebSocketProvider.startWebSocket(sessionId)
                     currentWebSocket.value = newWebSocket
                     log.info("WS: established")
+                    _state.value = WebSocketState.CONNECTED
                     reconnectTimer.reset()
                     val closeReason = newWebSocket.closeReason.filterNotNull().first()
                     if (closeReason is CloseReason.ExceptionalClose) {
@@ -47,11 +53,13 @@ class AutoReconnectingWebSocket(
                 } catch (ex: CancellationException) {
                     log.debug("WS: Coroutine cancelled, closing last session... quitting the session creation loop")
                     currentWebSocket.getAndUpdate { null }?.close()
+                    _state.value = WebSocketState.DISCONNECTED
                     break
                 } catch (ex: Exception) {
                     log.error("WS: Unknown session error: ", ex)
                     val retryTimeout = reconnectTimer.nextTimeout()
                     log.info("WS: Will retry after timeout: {}", retryTimeout)
+                    _state.value = WebSocketState.DISCONNECTED
                     delay(retryTimeout.inWholeMilliseconds)
                 }
             }
@@ -84,6 +92,7 @@ class AutoReconnectingWebSocket(
     override suspend fun close() {
         if (closeReason.compareAndSet(null, CloseReason.GracefulClose)) {
             webSocketScope.cancel()
+            _state.value = WebSocketState.DISCONNECTED
         }
     }
 

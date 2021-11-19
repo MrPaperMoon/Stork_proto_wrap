@@ -2,6 +2,7 @@ package io.stork.client.ws
 
 import io.stork.client.CloseReason
 import io.stork.client.WebSocket
+import io.stork.client.WebSocketState
 import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.util.takeWhile
 import io.stork.client.ws.engine.RawWebSocket
@@ -16,7 +17,12 @@ class WebSocketConnection(
 ): WebSocket {
     override val isNewSession: Flow<Boolean> = flowOf(notificationSessionInfo.is_new_connection)
     override val lastAckReceivedByServer: Flow<String?> = flowOf(notificationSessionInfo.last_ack_notification_id)
-    override val closeReason: MutableStateFlow<CloseReason?> = MutableStateFlow(null)
+
+    private val _closeReason: MutableStateFlow<CloseReason?> = MutableStateFlow(null)
+    private val _state: MutableStateFlow<WebSocketState> = MutableStateFlow(WebSocketState.CONNECTED)
+
+    override val closeReason: StateFlow<CloseReason?> = _closeReason.asStateFlow()
+    override val state: StateFlow<WebSocketState> = _state.asStateFlow()
 
     override suspend fun sendEcho(echo: Echo) {
         send(ClientWSPacket(echo = echo))
@@ -34,14 +40,22 @@ class WebSocketConnection(
     }
 
     private val receivedPackages: Flow<ServerWSPacket> = rawWebSocket.received.catch {
-        closeReason.compareAndSet(null, CloseReason.ExceptionalClose(it))
+        markAsClosed(CloseReason.ExceptionalClose(it))
     }.takeWhile(closeReason) { it == null }
 
     override val receiveEcho: Flow<Echo> = receivedPackages.mapNotNull { it.echo }
     override val notifications: Flow<Notification> = receivedPackages.mapNotNull { it.notification }
 
+    private fun markAsClosed(reason: CloseReason): Boolean {
+        val markedAsClosed = _closeReason.compareAndSet(null, reason)
+        if (markedAsClosed) {
+            _state.value = WebSocketState.DISCONNECTED
+        }
+        return markedAsClosed
+    }
+
     override suspend fun close() {
-        if (closeReason.compareAndSet(null, CloseReason.GracefulClose)) {
+        if (markAsClosed(CloseReason.GracefulClose)) {
             rawWebSocket.close()
         }
     }
