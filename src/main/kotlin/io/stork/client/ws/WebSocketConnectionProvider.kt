@@ -3,16 +3,16 @@ package io.stork.client.ws
 import io.stork.client.ApiClientConfig
 import io.stork.client.WebSocket
 import io.stork.client.ws.engine.WebSocketEngine
+import java.util.concurrent.TimeoutException
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeoutException
-import kotlin.time.ExperimentalTime
 
 class WebSocketConnectionProvider(
-        private val apiClientConfig: ApiClientConfig,
-        private val webSocketEngine: WebSocketEngine
-): WebSocketProvider {
+    private val apiClientConfig: ApiClientConfig,
+    private val webSocketEngine: WebSocketEngine
+) : WebSocketProvider {
     private val log = LoggerFactory.getLogger(WebSocketConnectionProvider::class.java)
 
     @OptIn(ExperimentalTime::class)

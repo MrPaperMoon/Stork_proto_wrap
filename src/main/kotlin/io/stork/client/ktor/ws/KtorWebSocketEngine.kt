@@ -11,17 +11,17 @@ import io.stork.client.ws.engine.RawWebSocket
 import io.stork.client.ws.engine.WebSocketEngine
 import io.stork.proto.client.websocket.ClientWSPacket
 import io.stork.proto.client.websocket.ServerWSPacket
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.broadcast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import org.slf4j.LoggerFactory
-import java.util.concurrent.atomic.AtomicLong
 
 class KtorWebSocketEngine(private val client: HttpClient,
                           private val apiClientConfig: ApiClientConfig,
-                          private val serializers: Serializers): WebSocketEngine {
+                          private val serializers: Serializers) : WebSocketEngine {
     private val socketCounter = AtomicLong(0)
 
     override suspend fun startNewSocket(address: String, sessionId: String?): RawWebSocket {
@@ -38,7 +38,7 @@ class KtorWebSocketEngine(private val client: HttpClient,
         }
         log.info("<-- session established -->")
 
-        return object: RawWebSocket {
+        return object : RawWebSocket {
             private val incomingFrames = session.incoming.broadcast()
 
             override val received: Flow<ServerWSPacket>

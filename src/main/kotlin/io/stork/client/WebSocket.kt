@@ -6,7 +6,7 @@ import io.stork.proto.client.websocket.NotificationAck
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
-interface WebSocket: ApiNotificationsSource {
+interface WebSocket : ApiNotificationsSource {
     val sessionId: String
     val isNewSession: Flow<Boolean>
     val lastAckReceivedByServer: Flow<String?>

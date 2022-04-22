@@ -1,12 +1,13 @@
 package io.stork.client.okhttp
 
+import java.io.IOException
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import java.io.IOException
 
-internal class AuthInterceptor(private val accessTokenProvider: () -> String?): Interceptor {
-    @Throws(IOException::class) override fun intercept(chain: Interceptor.Chain): Response {
+internal class AuthInterceptor(private val accessTokenProvider: () -> String?) : Interceptor {
+    @Throws(IOException::class)
+    override fun intercept(chain: Interceptor.Chain): Response {
         val accessToken = accessTokenProvider()
 
         val request: Request = chain.request()

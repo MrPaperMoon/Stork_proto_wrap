@@ -5,7 +5,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 
-class CompositeWebSocketListener private constructor(private val child: List<WebSocketListener>): WebSocketListener() {
+class CompositeWebSocketListener private constructor(private val child: List<WebSocketListener>) : WebSocketListener() {
     override fun onOpen(webSocket: WebSocket, response: Response) {
         child.forEach { it.onOpen(webSocket, response) }
     }
@@ -33,6 +33,6 @@ class CompositeWebSocketListener private constructor(private val child: List<Web
 
     companion object {
         operator fun invoke(vararg listener: WebSocketListener?): WebSocketListener =
-                CompositeWebSocketListener(listener.toList().filterNotNull())
+            CompositeWebSocketListener(listener.toList().filterNotNull())
     }
 }

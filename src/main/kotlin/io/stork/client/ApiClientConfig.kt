@@ -1,8 +1,8 @@
 package io.stork.client
 
-import okhttp3.logging.HttpLoggingInterceptor
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
+import okhttp3.logging.HttpLoggingInterceptor
 
 @OptIn(ExperimentalTime::class)
 data class ApiClientConfig(
@@ -18,7 +18,7 @@ data class ApiClientConfig(
         mediaType: ApiMediaType = ApiMediaType.PROTOBUF,
         logLevel: LogLevel = LogLevel.NONE,
         timeout: Duration = Duration.minutes(1)
-    ): this({ domainName }, useSsl, mediaType, logLevel, timeout)
+    ) : this({ domainName }, useSsl, mediaType, logLevel, timeout)
 
     private val httpProtocol = when {
         useSsl -> "https"

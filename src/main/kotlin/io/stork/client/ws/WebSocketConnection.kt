@@ -7,14 +7,24 @@ import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.client.util.takeWhile
 import io.stork.client.ws.engine.RawWebSocket
 import io.stork.proto.client.notifications.Notification
-import io.stork.proto.client.websocket.*
-import kotlinx.coroutines.flow.*
+import io.stork.proto.client.websocket.ClientWSPacket
+import io.stork.proto.client.websocket.Echo
+import io.stork.proto.client.websocket.NotificationAck
+import io.stork.proto.client.websocket.NotificationSessionInfo
+import io.stork.proto.client.websocket.ServerWSPacket
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapNotNull
 
 class WebSocketConnection(
-        override val sessionId: String,
-        notificationSessionInfo: NotificationSessionInfo,
-        private val rawWebSocket: RawWebSocket
-): WebSocket {
+    override val sessionId: String,
+    notificationSessionInfo: NotificationSessionInfo,
+    private val rawWebSocket: RawWebSocket
+) : WebSocket {
     override val isNewSession: Flow<Boolean> = flowOf(notificationSessionInfo.is_new_connection)
     override val lastAckReceivedByServer: Flow<String?> = flowOf(notificationSessionInfo.last_ack_notification_id)
 

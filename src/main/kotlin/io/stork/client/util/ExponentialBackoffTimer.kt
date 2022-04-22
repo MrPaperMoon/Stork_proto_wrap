@@ -1,6 +1,5 @@
 package io.stork.client.util
 
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -53,7 +52,9 @@ class ExponentialBackOffTimer(val initialInterval: Int = DEFAULT_INITIAL_INTERVA
         const val DEFAULT_MULTIPLIER = 1.5
         const val DEFAULT_MAX_INTERVAL = 60000
 
-        fun calculateRandomizedInterval(randomizationFactor: Double, random: Double, currentIntervalMillis: Int): Int {
+        fun calculateRandomizedInterval(randomizationFactor: Double,
+                                        random: Double,
+                                        currentIntervalMillis: Int): Int {
             val delta = randomizationFactor * currentIntervalMillis
             val minInterval = currentIntervalMillis - delta
             val maxInterval = currentIntervalMillis + delta
@@ -63,12 +64,16 @@ class ExponentialBackOffTimer(val initialInterval: Int = DEFAULT_INITIAL_INTERVA
         // Get a random value from the range [minInterval, maxInterval].
         // The formula used below has a +1 because if the minInterval is 1 and the maxInterval is 3 then
         // we want a 33% chance for selecting either 1, 2 or 3.
-        fun getRandomIntervalBetween(minInterval: Double, maxInterval: Double, random: Double): Int {
+        fun getRandomIntervalBetween(minInterval: Double,
+                                     maxInterval: Double,
+                                     random: Double): Int {
             return (minInterval + random * (maxInterval - minInterval + 1)).toInt()
         }
 
         // Check for overflow, if overflow is detected set the current interval to the max interval.
-        private fun calculateNextInterval(currentInterval: Int, maxInterval: Int, multiplier: Double): Int {
+        private fun calculateNextInterval(currentInterval: Int,
+                                          maxInterval: Int,
+                                          multiplier: Double): Int {
             return if (currentInterval >= maxInterval / multiplier) {
                 maxInterval
             } else {

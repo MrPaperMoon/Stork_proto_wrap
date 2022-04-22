@@ -13,5 +13,6 @@ interface ProtobufSerializer {
     fun read(type: KClass<out Message<*, *>>, body: Input): Message<*, *> {
         return read(type, body.readBytes())
     }
+
     fun <T : Message<*, *>> read(type: KClass<out T>, bytes: ByteArray): T
 }

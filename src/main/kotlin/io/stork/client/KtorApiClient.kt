@@ -14,43 +14,151 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
 import io.stork.client.ktor.DefaultProtobufSerializer
 import io.stork.client.ktor.getResult
-import io.stork.client.module.*
 import io.stork.client.module.Account
+import io.stork.client.module.Auth
+import io.stork.client.module.Avatar
 import io.stork.client.module.Chat
 import io.stork.client.module.ChatActivity
 import io.stork.client.module.ChatMessage
 import io.stork.client.module.Conference
+import io.stork.client.module.Member
+import io.stork.client.module.PublicProfile
+import io.stork.client.module.RTC
+import io.stork.client.module.Recordings
+import io.stork.client.module.Session
 import io.stork.client.module.Workspace
 import io.stork.client.ws.WebSocketProvider
-import io.stork.proto.client.account.*
-import io.stork.proto.client.auth.*
+import io.stork.proto.client.account.AccountsListRequest
+import io.stork.proto.client.account.AccountsListResponse
+import io.stork.proto.client.account.UpdateAccountNameRequest
+import io.stork.proto.client.account.UpdateAccountNameResponse
+import io.stork.proto.client.account.UpdateAccountPasswordRequest
+import io.stork.proto.client.account.UpdateAccountPasswordResponse
+import io.stork.proto.client.auth.CheckEmailRequest
+import io.stork.proto.client.auth.CheckEmailResponse
+import io.stork.proto.client.auth.LoginRequest
+import io.stork.proto.client.auth.LoginResponse
+import io.stork.proto.client.auth.LoginWithGoogleRequest
+import io.stork.proto.client.auth.LoginWithSlackRequest
+import io.stork.proto.client.auth.SendMagicLinkRequest
+import io.stork.proto.client.auth.SendMagicLinkResponse
+import io.stork.proto.client.auth.VerifyMagicLinkCodeRequest
+import io.stork.proto.client.auth.VerifyMagicLinkRequest
 import io.stork.proto.client.avatar.AvatarUploadResponse
 import io.stork.proto.client.avatar.SetPrimaryAvatarRequest
 import io.stork.proto.client.avatar.SetPrimaryAvatarResponse
-import io.stork.proto.client.calls.conference.*
-import io.stork.proto.client.calls.rtc.*
-import io.stork.proto.client.file.*
+import io.stork.proto.client.calls.conference.ConferenceInfoRequest
+import io.stork.proto.client.calls.conference.ConferenceInfoResponse
+import io.stork.proto.client.calls.conference.ConferenceListRequest
+import io.stork.proto.client.calls.conference.ConferenceListResponse
+import io.stork.proto.client.calls.conference.ConferenceVoiceChannelUpdateMuteRequest
+import io.stork.proto.client.calls.conference.ConferenceVoiceChannelUpdateMuteResponse
+import io.stork.proto.client.calls.conference.ConferenceWatercoolerUpdateScopeRequest
+import io.stork.proto.client.calls.conference.ConferenceWatercoolerUpdateScopeResponse
+import io.stork.proto.client.calls.conference.CreateConferenceRequest
+import io.stork.proto.client.calls.conference.CreateConferenceResponse
+import io.stork.proto.client.calls.conference.InviteToConferenceRequest
+import io.stork.proto.client.calls.conference.InviteToConferenceResponse
+import io.stork.proto.client.calls.conference.JoinConferenceRequest
+import io.stork.proto.client.calls.conference.JoinConferenceResponse
+import io.stork.proto.client.calls.conference.LeaveConferenceRequest
+import io.stork.proto.client.calls.conference.LeaveConferenceResponse
+import io.stork.proto.client.calls.rtc.AddRTCIceCandidatesRequest
+import io.stork.proto.client.calls.rtc.AddRTCIceCandidatesResponse
+import io.stork.proto.client.calls.rtc.RTCConnectionNegotiateRequest
+import io.stork.proto.client.calls.rtc.RTCConnectionNegotiateResponse
+import io.stork.proto.client.calls.rtc.RemoveRTCIceCandidatesRequest
+import io.stork.proto.client.calls.rtc.RemoveRTCIceCandidatesResponse
+import io.stork.proto.client.file.FinishMultipartFileUploadRequest
+import io.stork.proto.client.file.FinishMultipartFileUploadResponse
+import io.stork.proto.client.file.FinishPartUploadRequest
+import io.stork.proto.client.file.FinishPartUploadResponse
+import io.stork.proto.client.file.GetFileMetadataResponse
+import io.stork.proto.client.file.GetFilePreSignedUrlRequest
+import io.stork.proto.client.file.GetFilePreSignedUrlResponse
+import io.stork.proto.client.file.StartMultipartFileUploadResponse
+import io.stork.proto.client.file.UploadFileRequest
+import io.stork.proto.client.file.UploadFileResponse
 import io.stork.proto.client.member.MemberListRequest
 import io.stork.proto.client.member.MemberListResponse
-import io.stork.proto.client.messaging.chat.*
+import io.stork.proto.client.messaging.chat.ArchiveChatRequest
+import io.stork.proto.client.messaging.chat.ArchiveChatResponse
+import io.stork.proto.client.messaging.chat.CreateChatRequest
+import io.stork.proto.client.messaging.chat.CreateChatResponse
+import io.stork.proto.client.messaging.chat.EditChatMessageRequest
+import io.stork.proto.client.messaging.chat.EditChatMessageResponse
+import io.stork.proto.client.messaging.chat.GetChatMessagesRequest
+import io.stork.proto.client.messaging.chat.GetChatMessagesResponse
+import io.stork.proto.client.messaging.chat.GetChatRequest
+import io.stork.proto.client.messaging.chat.GetChatResponse
+import io.stork.proto.client.messaging.chat.JoinChatRequest
+import io.stork.proto.client.messaging.chat.JoinChatResponse
+import io.stork.proto.client.messaging.chat.LeaveChatRequest
+import io.stork.proto.client.messaging.chat.LeaveChatResponse
+import io.stork.proto.client.messaging.chat.ListRecentChatsRequest
+import io.stork.proto.client.messaging.chat.ListRecentChatsResponse
+import io.stork.proto.client.messaging.chat.MarkChatAsReadRequest
+import io.stork.proto.client.messaging.chat.MarkChatAsReadResponse
+import io.stork.proto.client.messaging.chat.RemoveChatMessageRequest
+import io.stork.proto.client.messaging.chat.RemoveChatMessageResponse
+import io.stork.proto.client.messaging.chat.SearchChatRequest
+import io.stork.proto.client.messaging.chat.SearchChatResponse
+import io.stork.proto.client.messaging.chat.SendChatMessageRequest
+import io.stork.proto.client.messaging.chat.SendChatMessageResponse
+import io.stork.proto.client.messaging.chat.StartChatActivityRequest
+import io.stork.proto.client.messaging.chat.StartChatActivityResponse
+import io.stork.proto.client.messaging.chat.StopChatActivityRequest
+import io.stork.proto.client.messaging.chat.StopChatActivityResponse
+import io.stork.proto.client.messaging.chat.ToggleChatMessageReactionRequest
+import io.stork.proto.client.messaging.chat.ToggleChatMessageReactionResponse
+import io.stork.proto.client.messaging.chat.UpdateChatRequest
+import io.stork.proto.client.messaging.chat.UpdateChatResponse
 import io.stork.proto.client.profiles.PublicProfileListRequest
 import io.stork.proto.client.profiles.PublicProfileListResponse
 import io.stork.proto.client.recording.RecordingListRequest
 import io.stork.proto.client.recording.RecordingListResponse
 import io.stork.proto.client.recording.UpdateRecordingTitleRequest
 import io.stork.proto.client.recording.UpdateRecordingTitleResponse
-import io.stork.proto.client.session.*
-import io.stork.proto.client.workspace.*
-import org.slf4j.LoggerFactory
+import io.stork.proto.client.session.AddPushNotificationsTokenRequest
+import io.stork.proto.client.session.AddPushNotificationsTokenResponse
+import io.stork.proto.client.session.GenerateSessionRequest
+import io.stork.proto.client.session.GenerateSessionResponse
+import io.stork.proto.client.session.LogoutRequest
+import io.stork.proto.client.session.LogoutResponse
+import io.stork.proto.client.session.RemovePushNotificationsTokenRequest
+import io.stork.proto.client.session.RemovePushNotificationsTokenResponse
+import io.stork.proto.client.session.UpdateClientSystemInfoRequest
+import io.stork.proto.client.session.UpdateClientSystemInfoResponse
+import io.stork.proto.client.session.UpdateTimezoneRequest
+import io.stork.proto.client.session.UpdateTimezoneResponse
+import io.stork.proto.client.workspace.CheckWorkspaceSubdomainRequest
+import io.stork.proto.client.workspace.CheckWorkspaceSubdomainResponse
+import io.stork.proto.client.workspace.CreateWorkspaceRequest
+import io.stork.proto.client.workspace.CreateWorkspaceResponse
+import io.stork.proto.client.workspace.ImportMembersToWorkspaceFromGoogleRequest
+import io.stork.proto.client.workspace.ImportMembersToWorkspaceFromGoogleResponse
+import io.stork.proto.client.workspace.ImportMembersToWorkspaceFromSlackRequest
+import io.stork.proto.client.workspace.ImportMembersToWorkspaceFromSlackResponse
+import io.stork.proto.client.workspace.InviteToWorkspaceRequest
+import io.stork.proto.client.workspace.InviteToWorkspaceResponse
+import io.stork.proto.client.workspace.JoinWorkspaceRequest
+import io.stork.proto.client.workspace.JoinWorkspaceResponse
+import io.stork.proto.client.workspace.LeaveWorkspaceRequest
+import io.stork.proto.client.workspace.LeaveWorkspaceResponse
+import io.stork.proto.client.workspace.UpdateWorkspaceDisplayNameRequest
+import io.stork.proto.client.workspace.UpdateWorkspaceDisplayNameResponse
+import io.stork.proto.client.workspace.WorkspaceListRequest
+import io.stork.proto.client.workspace.WorkspaceListResponse
 import java.io.File
 import java.io.FileOutputStream
+import org.slf4j.LoggerFactory
 
 internal class KtorApiClient(
     private val config: ApiClientConfig,
     private val client: HttpClient,
     private val sessionProvider: SessionProvider,
     private val webSocketProvider: WebSocketProvider
-): ApiClient, SessionProvider by sessionProvider, WebSocketProvider by webSocketProvider {
+) : ApiClient, SessionProvider by sessionProvider, WebSocketProvider by webSocketProvider {
     private val log = LoggerFactory.getLogger("ApiClient")
 
     private fun apiCallUrl(path: String): String = config.apiBaseUrl + "/" + path
@@ -63,7 +171,7 @@ internal class KtorApiClient(
         }
     }
 
-    private suspend inline fun <reified T: Any> getAndLogResult(response: HttpResponse): ApiResult<T> {
+    private suspend inline fun <reified T : Any> getAndLogResult(response: HttpResponse): ApiResult<T> {
         val result = response.getResult<T>()
         when (config.logLevel) {
             LogLevel.BASIC -> log.info("{} >>> {}", response.call.request.url, response.status)
@@ -98,7 +206,8 @@ internal class KtorApiClient(
     }
 
 
-    private suspend inline fun <reified T : Any> makeApiCall(path: String, body: Message<*, *>): ApiResult<T> {
+    private suspend inline fun <reified T : Any> makeApiCall(path: String,
+                                                             body: Message<*, *>): ApiResult<T> {
         val url = apiCallUrl(path)
 
         logRequest(url, body)
@@ -112,7 +221,8 @@ internal class KtorApiClient(
         return getAndLogResult(response)
     }
 
-    private suspend inline fun <reified T : Any> makeApiCallWithoutBody(path: String, method: HttpMethod = HttpMethod.Get): ApiResult<T> {
+    private suspend inline fun <reified T : Any> makeApiCallWithoutBody(path: String,
+                                                                        method: HttpMethod = HttpMethod.Get): ApiResult<T> {
         val url = apiCallUrl(path)
 
         logRequest(url)
@@ -128,7 +238,7 @@ internal class KtorApiClient(
 
     override fun getConfig(): ApiClientConfig = config
 
-    override val account: Account = object: Account {
+    override val account: Account = object : Account {
         override suspend fun list(body: AccountsListRequest): ApiResult<AccountsListResponse> =
             makeApiCall("account.list", body)
 
@@ -169,8 +279,9 @@ internal class KtorApiClient(
         }
 
     }
-    override val avatar: Avatar = object: Avatar {
-        override suspend fun uploadFile(file: BinaryContent, uploadStatusCallback: UploadStatusCallback?): ApiResult<AvatarUploadResponse> {
+    override val avatar: Avatar = object : Avatar {
+        override suspend fun uploadFile(file: BinaryContent,
+                                        uploadStatusCallback: UploadStatusCallback?): ApiResult<AvatarUploadResponse> {
             return makeMultipartApiCall("avatar.upload", formData {
                 appendInput(
                     key = "file",
@@ -186,7 +297,9 @@ internal class KtorApiClient(
         }
 
 
-        override suspend fun downloadAvatar(avatarId: String, size: AvatarSize, targetFile: File): File {
+        override suspend fun downloadAvatar(avatarId: String,
+                                            size: AvatarSize,
+                                            targetFile: File): File {
             return client.get<HttpStatement>("avatar.download/$avatarId/${size.raw}").execute { response: HttpResponse ->
                 val downloadChannel = response.receive<ByteReadChannel>()
                 FileOutputStream(targetFile).use { fileOutput ->
@@ -207,7 +320,7 @@ internal class KtorApiClient(
         }
     }
 
-    override val chat: Chat = object: Chat {
+    override val chat: Chat = object : Chat {
         override suspend fun get(body: GetChatRequest): ApiResult<GetChatResponse> {
             return makeApiCall("chat.get", body)
         }
@@ -244,15 +357,16 @@ internal class KtorApiClient(
             return makeApiCall("chat.search", body)
         }
     }
-    override val chatActivity: ChatActivity = object: ChatActivity {
+    override val chatActivity: ChatActivity = object : ChatActivity {
         override suspend fun start(body: StartChatActivityRequest): ApiResult<StartChatActivityResponse> {
             return makeApiCall("chat.activity.start", body)
         }
+
         override suspend fun stop(body: StopChatActivityRequest): ApiResult<StopChatActivityResponse> {
             return makeApiCall("chat.activity.stop", body)
         }
     }
-    override val chatMessage: ChatMessage = object: ChatMessage {
+    override val chatMessage: ChatMessage = object : ChatMessage {
         override suspend fun get(body: GetChatMessagesRequest): ApiResult<GetChatMessagesResponse> {
             return makeApiCall("chat.message.get", body)
         }
@@ -273,7 +387,7 @@ internal class KtorApiClient(
             return makeApiCall("chat.message.remove", body)
         }
     }
-    override val conference: Conference = object: Conference {
+    override val conference: Conference = object : Conference {
         override suspend fun create(body: CreateConferenceRequest): ApiResult<CreateConferenceResponse> {
             return makeApiCall("conference.create", body)
         }
@@ -308,7 +422,7 @@ internal class KtorApiClient(
 
     }
 
-    override val file: io.stork.client.module.File = object: io.stork.client.module.File {
+    override val file: io.stork.client.module.File = object : io.stork.client.module.File {
         override fun getFileUrl(fileId: String): String {
             return "${config.apiBaseUrl}/file.download/${fileId}"
         }
@@ -356,19 +470,19 @@ internal class KtorApiClient(
         }
     }
 
-    override val member: Member = object: Member {
+    override val member: Member = object : Member {
         override suspend fun list(body: MemberListRequest): ApiResult<MemberListResponse> {
             return makeApiCall("member.list", body)
         }
     }
 
-    override val publicProfile: PublicProfile = object: PublicProfile {
+    override val publicProfile: PublicProfile = object : PublicProfile {
         override suspend fun list(body: PublicProfileListRequest): ApiResult<PublicProfileListResponse> {
             return makeApiCall("publicProfile.list", body)
         }
     }
 
-    override val recordings: Recordings = object: Recordings {
+    override val recordings: Recordings = object : Recordings {
         override suspend fun list(body: RecordingListRequest): ApiResult<RecordingListResponse> {
             return makeApiCall("recording.list", body)
         }
@@ -378,7 +492,7 @@ internal class KtorApiClient(
         }
     }
 
-    override val rtc: RTC = object: RTC {
+    override val rtc: RTC = object : RTC {
         override suspend fun negotiateConnection(body: RTCConnectionNegotiateRequest): ApiResult<RTCConnectionNegotiateResponse> {
             return makeApiCall("rtc.negotiate", body)
         }
@@ -392,7 +506,7 @@ internal class KtorApiClient(
         }
     }
 
-    override val session: Session = object: Session {
+    override val session: Session = object : Session {
         override suspend fun generate(body: GenerateSessionRequest): ApiResult<GenerateSessionResponse> {
             return makeApiCall("session.generate", body)
         }
@@ -418,7 +532,7 @@ internal class KtorApiClient(
         }
     }
 
-    override val workspace: Workspace = object: Workspace {
+    override val workspace: Workspace = object : Workspace {
         override suspend fun join(body: JoinWorkspaceRequest): ApiResult<JoinWorkspaceResponse> {
             return makeApiCall("workspace.join", body)
         }

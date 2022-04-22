@@ -5,11 +5,11 @@ import io.stork.client.exceptions.UnknownException
 import io.stork.client.exceptions.ValidationException
 import io.stork.proto.client.error.UnhandledError
 
-sealed class ApiResult<out T: Any> {
-    data class Success<T: Any>(val response: T): ApiResult<T>()
-    data class AuthenticationError(val response: io.stork.proto.client.error.AuthenticationError): ApiResult<Nothing>()
-    data class ValidationError(val response: io.stork.proto.client.error.ValidationError): ApiResult<Nothing>()
-    data class UnknownError(val response: UnhandledError): ApiResult<Nothing>()
+sealed class ApiResult<out T : Any> {
+    data class Success<T : Any>(val response: T) : ApiResult<T>()
+    data class AuthenticationError(val response: io.stork.proto.client.error.AuthenticationError) : ApiResult<Nothing>()
+    data class ValidationError(val response: io.stork.proto.client.error.ValidationError) : ApiResult<Nothing>()
+    data class UnknownError(val response: UnhandledError) : ApiResult<Nothing>()
 
     fun getOrThrow(): T = when (this) {
         is Success -> response
@@ -28,18 +28,18 @@ sealed class ApiResult<out T: Any> {
     companion object {
         private fun Exception.asUnhandledError(): UnhandledError {
             return UnhandledError(
-                    name = javaClass.name,
-                    message = message + ":\n" + stackTraceToString()
+                name = javaClass.name,
+                message = message + ":\n" + stackTraceToString()
             )
         }
 
-        fun <T: Any> fromException(ex: Exception): ApiResult<T> {
+        fun <T : Any> fromException(ex: Exception): ApiResult<T> {
             return UnknownError(ex.asUnhandledError())
         }
     }
 }
 
-fun <T : Any, U: Any> ApiResult<T>.map(mapper: (T) -> U): ApiResult<U> = when (this) {
+fun <T : Any, U : Any> ApiResult<T>.map(mapper: (T) -> U): ApiResult<U> = when (this) {
     is ApiResult.Success -> ApiResult.Success(mapper(response))
     is ApiResult.AuthenticationError -> this
     is ApiResult.UnknownError -> this

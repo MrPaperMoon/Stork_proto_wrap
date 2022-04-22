@@ -18,7 +18,7 @@ interface BinaryContent {
     fun open(): InputStream
 }
 
-class FileBinaryContent(val file: File): BinaryContent {
+class FileBinaryContent(val file: File) : BinaryContent {
     override val contentType: String
         get() = ContentType.defaultForFile(file).toString()
     override val name: String

@@ -11,7 +11,8 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 
-class IncomingDataFramesListener(private val serializers: Serializers, val logPacket: (ServerWSPacket) -> Unit): WebSocketListener() {
+class IncomingDataFramesListener(private val serializers: Serializers,
+                                 val logPacket: (ServerWSPacket) -> Unit) : WebSocketListener() {
     private val packetsChannel: BroadcastChannel<ServerWSPacket> = BroadcastChannel(Channel.CONFLATED)
 
     val packets: Flow<ServerWSPacket> = packetsChannel.asFlow()

@@ -2,14 +2,15 @@ package io.stork.client.util
 
 import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 @OptIn(ExperimentalTime::class)
 class ExponentialBackoffBackOffTimerTest {
-    @Test fun testConstructor() {
+    @Test
+    fun testConstructor() {
         val backOffPolicy = ExponentialBackOffTimer()
         assertEquals(ExponentialBackOffTimer.DEFAULT_INITIAL_INTERVAL, backOffPolicy.initialInterval)
         assertEquals(ExponentialBackOffTimer.DEFAULT_INITIAL_INTERVAL, backOffPolicy.getNextInterval())
@@ -18,7 +19,8 @@ class ExponentialBackoffBackOffTimerTest {
         assertEquals(ExponentialBackOffTimer.DEFAULT_MAX_INTERVAL, backOffPolicy.maxInterval)
     }
 
-    @Test fun testBuilder() {
+    @Test
+    fun testBuilder() {
         var backOffPolicy = ExponentialBackOffTimer()
         assertEquals(ExponentialBackOffTimer.DEFAULT_INITIAL_INTERVAL, backOffPolicy.initialInterval)
         assertEquals(ExponentialBackOffTimer.DEFAULT_INITIAL_INTERVAL, backOffPolicy.getNextInterval())
@@ -44,7 +46,8 @@ class ExponentialBackoffBackOffTimerTest {
         assertEquals(testMaxInterval, backOffPolicy.maxInterval)
     }
 
-    @Test fun testBackOff() {
+    @Test
+    fun testBackOff() {
         val testInitialInterval = 500
         val testRandomizationFactor = 0.1
         val testMultiplier = 2.0
@@ -68,7 +71,8 @@ class ExponentialBackoffBackOffTimerTest {
         }
     }
 
-    @Test fun testCalculateRandomizedInterval() {
+    @Test
+    fun testCalculateRandomizedInterval() {
         fun calcInterval(random: Double) =
             ExponentialBackOffTimer.calculateRandomizedInterval(0.5, random, 2)
 

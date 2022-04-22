@@ -17,7 +17,7 @@ fun HttpClientConfig<*>.StorkKtorResponseValidator() {
     }
 }
 
-suspend inline fun <reified T: Any> HttpResponse.getResult(): ApiResult<T> {
+suspend inline fun <reified T : Any> HttpResponse.getResult(): ApiResult<T> {
     try {
         return when (status.value) {
             200 -> ApiResult.Success(receive())
@@ -33,7 +33,7 @@ suspend inline fun <reified T: Any> HttpResponse.getResult(): ApiResult<T> {
 
 fun HttpResponse.asUnhandledError(): UnhandledError {
     return UnhandledError(
-            name = "Code ${status.value}",
-            message = status.description
+        name = "Code ${status.value}",
+        message = status.description
     )
 }

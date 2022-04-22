@@ -2,8 +2,8 @@ package io.stork.client.okhttp
 
 import io.stork.client.ApiClientConfig
 import io.stork.client.SessionProvider
-import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
+import okhttp3.OkHttpClient
 
 object OkHttpFactory {
     fun createOkHttp(config: ApiClientConfig, sessionProvider: SessionProvider): OkHttpClient {

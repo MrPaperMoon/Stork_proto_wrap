@@ -11,17 +11,35 @@ import io.stork.client.util.takeWhile
 import io.stork.proto.client.notifications.Notification
 import io.stork.proto.client.websocket.Echo
 import io.stork.proto.client.websocket.NotificationAck
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import org.slf4j.LoggerFactory
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import org.slf4j.LoggerFactory
 
 class AutoReconnectingWebSocket(
-        override val sessionId: String,
-        private val apiClientConfig: ApiClientConfig,
-        private val underlyingWebSocketProvider: WebSocketProvider,
-        private val webSocketScope: CoroutineScope = CoroutineScope(SupervisorJob())
-): WebSocket {
+    override val sessionId: String,
+    private val apiClientConfig: ApiClientConfig,
+    private val underlyingWebSocketProvider: WebSocketProvider,
+    private val webSocketScope: CoroutineScope = CoroutineScope(SupervisorJob())
+) : WebSocket {
     private val log = LoggerFactory.getLogger(AutoReconnectingWebSocket::class.java)
     override val closeReason: MutableStateFlow<CloseReason?> = MutableStateFlow(null)
 
@@ -67,9 +85,9 @@ class AutoReconnectingWebSocket(
     }
 
     override val isNewSession: Flow<Boolean> =
-            connectedWebSocket.flatMapLatest { it.isNewSession }
+        connectedWebSocket.flatMapLatest { it.isNewSession }
     override val lastAckReceivedByServer: Flow<String?> =
-            connectedWebSocket.flatMapLatest { it.lastAckReceivedByServer }
+        connectedWebSocket.flatMapLatest { it.lastAckReceivedByServer }
 
     override suspend fun sendEcho(echo: Echo) {
         return withConnectedWebSocket {
@@ -84,10 +102,10 @@ class AutoReconnectingWebSocket(
     }
 
     override val receiveEcho: Flow<Echo> =
-            connectedWebSocket.flatMapLatest { it.receiveEcho }
+        connectedWebSocket.flatMapLatest { it.receiveEcho }
 
     override val notifications: Flow<Notification> =
-            connectedWebSocket.flatMapLatest { it.notifications }
+        connectedWebSocket.flatMapLatest { it.notifications }
 
     override suspend fun close() {
         if (closeReason.compareAndSet(null, CloseReason.GracefulClose)) {

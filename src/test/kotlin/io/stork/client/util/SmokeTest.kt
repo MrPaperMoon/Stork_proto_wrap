@@ -6,25 +6,31 @@ import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beBlank
 import io.kotest.matchers.types.instanceOf
-import io.stork.client.*
+import io.stork.client.ApiClient
+import io.stork.client.ApiClientConfig
+import io.stork.client.ApiMediaType
+import io.stork.client.ApiResult
+import io.stork.client.BasicSessionProvider
+import io.stork.client.CloseReason
+import io.stork.client.StorkServers
 import io.stork.client.exceptions.ConnectionClosedException
 import io.stork.proto.client.auth.LoginRequest
 import io.stork.proto.client.session.GenerateSessionRequest
 import io.stork.proto.client.session.GenerateSessionResponse
 import io.stork.proto.client.websocket.Echo
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 class SmokeTest {
     private val generateSessionRequest = GenerateSessionRequest(
-            installation_id = "kotlin-api-client-test"
+        installation_id = "kotlin-api-client-test"
     )
     private val selectedServer = StorkServers.staging
     private lateinit var sessionProvider: BasicSessionProvider
@@ -49,10 +55,10 @@ class SmokeTest {
     fun itCanHandleFailedRestApiCall(mediaType: ApiMediaType) = suspendTest {
         val client = createApiClient(mediaType)
         val loginResult = client.auth.login(
-                LoginRequest(
-                        email = "foo_bar@foo_bar.com",
-                        password = "kokoko"
-                )
+            LoginRequest(
+                email = "foo_bar@foo_bar.com",
+                password = "kokoko"
+            )
         )
         loginResult shouldBe instanceOf<ApiResult.AuthenticationError>()
     }
@@ -121,7 +127,7 @@ class SmokeTest {
         webSocket.close()
 
         withTimeout(Duration.seconds(1)) {
-             allReceivedEcho.await() shouldBe listOf(echo)
+            allReceivedEcho.await() shouldBe listOf(echo)
         }
     }
 

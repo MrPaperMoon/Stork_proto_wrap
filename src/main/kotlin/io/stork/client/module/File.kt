@@ -1,7 +1,16 @@
 package io.stork.client.module
 
 import io.stork.client.ApiResult
-import io.stork.proto.client.file.*
+import io.stork.proto.client.file.FinishMultipartFileUploadRequest
+import io.stork.proto.client.file.FinishMultipartFileUploadResponse
+import io.stork.proto.client.file.FinishPartUploadRequest
+import io.stork.proto.client.file.FinishPartUploadResponse
+import io.stork.proto.client.file.GetFileMetadataResponse
+import io.stork.proto.client.file.GetFilePreSignedUrlRequest
+import io.stork.proto.client.file.GetFilePreSignedUrlResponse
+import io.stork.proto.client.file.StartMultipartFileUploadResponse
+import io.stork.proto.client.file.UploadFileRequest
+import io.stork.proto.client.file.UploadFileResponse
 
 interface File {
     fun getFileUrl(fileId: String): String
@@ -14,7 +23,8 @@ interface File {
 
     suspend fun finishMultipart(body: FinishMultipartFileUploadRequest): ApiResult<FinishMultipartFileUploadResponse>
 
-    suspend fun uploadFile(body: UploadFileRequest, content: java.io.File): ApiResult<UploadFileResponse>
+    suspend fun uploadFile(body: UploadFileRequest,
+                           content: java.io.File): ApiResult<UploadFileResponse>
 
     suspend fun getFileMetadata(fileId: String): ApiResult<GetFileMetadataResponse>
 
