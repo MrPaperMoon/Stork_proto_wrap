@@ -1,5 +1,7 @@
 package io.stork.client.util
 
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.slf4j.LoggerFactory
 
 fun <T> Flow<T>.repeat(): Flow<T> = flow {
     while (true) {
@@ -42,6 +45,16 @@ fun CoroutineScope.launchWithStacktrace(work: suspend () -> Unit): Job {
     }
 }
 
+fun <T> CoroutineScope.launchCatching(context: CoroutineContext = EmptyCoroutineContext,
+                                      coroutine: suspend CoroutineScope.() -> T): Job {
+    return launch(context) {
+        try {
+            coroutine(this)
+        } catch (ex: Throwable) {
+            LoggerFactory.getLogger(this.toString()).error("launchCatching failure: ", ex)
+        }
+    }
+}
 
 fun CoroutineScope.beforeCancel(block: suspend () -> Unit) {
     launch {
