@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     `java-library`
     idea
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.7.10"
     id("com.squareup.wire") version "3.7.0"
 }
 
@@ -44,7 +44,7 @@ dependencies {
     api("com.squareup.wire:wire-runtime:3.7.0")
     api("com.squareup.wire:wire-grpc-client:3.7.0")
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.10")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
 
     implementation(platform("io.ktor:ktor-bom:1.6.4"))
     implementation("io.ktor:ktor-client-core")

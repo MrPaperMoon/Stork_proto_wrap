@@ -176,6 +176,7 @@ internal class KtorApiClient(
         when (config.logLevel) {
             LogLevel.BASIC -> log.info("{} >>> {}", response.call.request.url, response.status)
             LogLevel.BODY -> log.info("{} >>> {} {}", response.call.request.url, response.status, result)
+            else -> {}
         }
 
         return result
