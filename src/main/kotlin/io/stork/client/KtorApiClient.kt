@@ -91,6 +91,8 @@ import io.stork.proto.client.messaging.chat.GetChatMessagesRequest
 import io.stork.proto.client.messaging.chat.GetChatMessagesResponse
 import io.stork.proto.client.messaging.chat.GetChatRequest
 import io.stork.proto.client.messaging.chat.GetChatResponse
+import io.stork.proto.client.messaging.chat.InviteToChatRequest
+import io.stork.proto.client.messaging.chat.InviteToChatResponse
 import io.stork.proto.client.messaging.chat.JoinChatRequest
 import io.stork.proto.client.messaging.chat.JoinChatResponse
 import io.stork.proto.client.messaging.chat.LeaveChatRequest
@@ -336,6 +338,10 @@ internal class KtorApiClient(
 
         override suspend fun update(body: UpdateChatRequest): ApiResult<UpdateChatResponse> {
             return makeApiCall("chat.update", body)
+        }
+
+        override suspend fun invite(body: InviteToChatRequest): ApiResult<InviteToChatResponse> {
+            return makeApiCall("chat.invite", body)
         }
 
         override suspend fun join(body: JoinChatRequest): ApiResult<JoinChatResponse> {
