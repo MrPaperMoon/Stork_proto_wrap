@@ -67,7 +67,7 @@ class ExponentialBackoffBackOffTimerTest {
             val minInterval = (expected - testRandomizationFactor * expected).toInt()
             val maxInterval = (expected + testRandomizationFactor * expected).toInt()
             val actualInterval = backOffPolicy.nextTimeout().toInt(DurationUnit.MILLISECONDS)
-            actualInterval shouldBeInRange (minInterval until maxInterval)
+            actualInterval shouldBeInRange (minInterval .. maxInterval)
         }
     }
 
