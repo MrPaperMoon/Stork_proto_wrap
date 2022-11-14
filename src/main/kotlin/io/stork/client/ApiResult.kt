@@ -1,47 +1,33 @@
 package io.stork.client
 
 import io.stork.client.exceptions.AuthenticationException
+import io.stork.client.exceptions.UnknownClientException
 import io.stork.client.exceptions.UnknownException
+import io.stork.client.exceptions.UnknownRemoteException
 import io.stork.client.exceptions.ValidationException
 import io.stork.proto.client.error.UnhandledError
 
 sealed class ApiResult<out T : Any> {
-    data class Success<T : Any>(val response: T) : ApiResult<T>()
-    data class AuthenticationError(val response: io.stork.proto.client.error.AuthenticationError) : ApiResult<Nothing>()
-    data class ValidationError(val response: io.stork.proto.client.error.ValidationError) : ApiResult<Nothing>()
-    data class UnknownError(val response: UnhandledError) : ApiResult<Nothing>()
+    open val response: T? = null
+
+    data class Success<T : Any>(override val response: T) : ApiResult<T>()
+    data class AuthenticationError(val error: io.stork.proto.client.error.AuthenticationError) : ApiResult<Nothing>()
+    data class ValidationError(val error: io.stork.proto.client.error.ValidationError) : ApiResult<Nothing>()
+
+    sealed class UncheckedError : ApiResult<Nothing>()
+    data class UnknownError(val error: UnhandledError) : UncheckedError()
+    data class UnknownClientError(val code: Int,
+                                  val description: String,
+                                  val exception: Exception) : UncheckedError()
+
+    data class UnknownRemoteError(val code: Int, val description: String) : UncheckedError()
 
     fun getOrThrow(): T = when (this) {
         is Success -> response
-        is AuthenticationError -> throw AuthenticationException(response)
-        is ValidationError -> throw ValidationException(response)
-        is UnknownError -> throw UnknownException(response)
+        is AuthenticationError -> throw AuthenticationException(error)
+        is ValidationError -> throw ValidationException(error)
+        is UnknownError -> throw UnknownException(error)
+        is UnknownClientError -> throw UnknownClientException(code, description, exception)
+        is UnknownRemoteError -> throw UnknownRemoteException(code, description)
     }
-
-    fun getAnyResult(): Any = when (this) {
-        is Success -> response
-        is AuthenticationError -> response
-        is ValidationError -> response
-        is UnknownError -> response
-    }
-
-    companion object {
-        private fun Exception.asUnhandledError(): UnhandledError {
-            return UnhandledError(
-                name = javaClass.name,
-                message = message + ":\n" + stackTraceToString()
-            )
-        }
-
-        fun <T : Any> fromException(ex: Exception): ApiResult<T> {
-            return UnknownError(ex.asUnhandledError())
-        }
-    }
-}
-
-fun <T : Any, U : Any> ApiResult<T>.map(mapper: (T) -> U): ApiResult<U> = when (this) {
-    is ApiResult.Success -> ApiResult.Success(mapper(response))
-    is ApiResult.AuthenticationError -> this
-    is ApiResult.UnknownError -> this
-    is ApiResult.ValidationError -> this
 }

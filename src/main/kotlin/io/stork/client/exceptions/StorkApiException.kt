@@ -1,3 +1,7 @@
 package io.stork.client.exceptions
 
-open class StorkApiException(message: String, cause: Throwable? = null) : Exception(message, cause)
+abstract class StorkApiException(message: String,
+                                 cause: Throwable? = null) : Exception(message, cause)
+
+abstract class StorkApiUncheckedException(message: String,
+                                          cause: Throwable? = null) : StorkApiException(message, cause)
