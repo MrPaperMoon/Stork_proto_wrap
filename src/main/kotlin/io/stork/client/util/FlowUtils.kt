@@ -23,7 +23,7 @@ fun <T> Flow<T>.repeat(): Flow<T> = flow {
     }
 }
 
-suspend fun <T> Flow<T>.safeFirst(): T {
+suspend fun <T> Flow<T>.firstWithStacktrace(): T {
     val stacktrace = RuntimeException("Flow.first() called here")
     try {
         return first()
