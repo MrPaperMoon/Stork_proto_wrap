@@ -69,6 +69,8 @@ import io.stork.proto.client.calls.rtc.RTCConnectionNegotiateRequest
 import io.stork.proto.client.calls.rtc.RTCConnectionNegotiateResponse
 import io.stork.proto.client.calls.rtc.RemoveRTCIceCandidatesRequest
 import io.stork.proto.client.calls.rtc.RemoveRTCIceCandidatesResponse
+import io.stork.proto.client.file.FileTranscribeListRequest
+import io.stork.proto.client.file.FileTranscribeListResponse
 import io.stork.proto.client.file.FinishMultipartFileUploadRequest
 import io.stork.proto.client.file.FinishMultipartFileUploadResponse
 import io.stork.proto.client.file.FinishPartUploadRequest
@@ -77,6 +79,7 @@ import io.stork.proto.client.file.GetFileMetadataResponse
 import io.stork.proto.client.file.GetFilePreSignedUrlRequest
 import io.stork.proto.client.file.GetFilePreSignedUrlResponse
 import io.stork.proto.client.file.StartMultipartFileUploadResponse
+import io.stork.proto.client.file.TranscribeResult
 import io.stork.proto.client.file.UploadFileRequest
 import io.stork.proto.client.file.UploadFileResponse
 import io.stork.proto.client.member.MemberListRequest
@@ -474,6 +477,14 @@ internal class KtorApiClient(
 
         override suspend fun deleteFile(fileId: String) {
             makeApiCallWithoutBody<AnyMessage>("file.delete/$fileId", HttpMethod.Delete)
+        }
+
+        override suspend fun getTranscribe(fileId: String): ApiResult<TranscribeResult> {
+            return makeApiCallWithoutBody("file.transcribe/$fileId")
+        }
+
+        override suspend fun getTranscribeList(body: FileTranscribeListRequest): ApiResult<FileTranscribeListResponse> {
+            return makeApiCall("file.transcribe.list", body)
         }
     }
 
