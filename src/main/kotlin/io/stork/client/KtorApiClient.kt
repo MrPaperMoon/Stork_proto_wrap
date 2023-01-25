@@ -23,6 +23,7 @@ import io.stork.client.module.ChatActivity
 import io.stork.client.module.ChatMessage
 import io.stork.client.module.Conference
 import io.stork.client.module.Member
+import io.stork.client.module.Notification
 import io.stork.client.module.PublicProfile
 import io.stork.client.module.RTC
 import io.stork.client.module.Recordings
@@ -121,6 +122,10 @@ import io.stork.proto.client.messaging.chat.ToggleChatMessageReactionRequest
 import io.stork.proto.client.messaging.chat.ToggleChatMessageReactionResponse
 import io.stork.proto.client.messaging.chat.UpdateChatRequest
 import io.stork.proto.client.messaging.chat.UpdateChatResponse
+import io.stork.proto.client.notifications.GetNotificationRequest
+import io.stork.proto.client.notifications.GetNotificationResponse
+import io.stork.proto.client.notifications.GetNotificationsListRequest
+import io.stork.proto.client.notifications.GetNotificationsListResponse
 import io.stork.proto.client.profiles.PublicProfileListRequest
 import io.stork.proto.client.profiles.PublicProfileListResponse
 import io.stork.proto.client.recording.RecordingListRequest
@@ -601,6 +606,18 @@ internal class KtorApiClient(
         override suspend fun getBadge(request: GetBadgeRequest): ApiResult<GetBadgeResponse> {
             return makeApiCall("badge.get", request)
         }
+    }
+
+    override val notification: Notification = object : Notification {
+
+        override suspend fun getNotification(request: GetNotificationRequest): ApiResult<GetNotificationResponse> {
+            return makeApiCall("notifications.get", request)
+        }
+
+        override suspend fun getNotificationsList(request: GetNotificationsListRequest): ApiResult<GetNotificationsListResponse> {
+            return makeApiCall("notifications.list", request)
+        }
+
     }
 }
 
