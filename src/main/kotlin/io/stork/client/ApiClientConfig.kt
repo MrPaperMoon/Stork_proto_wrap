@@ -1,8 +1,8 @@
 package io.stork.client
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
-import okhttp3.logging.HttpLoggingInterceptor
 
 @OptIn(ExperimentalTime::class)
 data class ApiClientConfig(
@@ -10,15 +10,8 @@ data class ApiClientConfig(
     val useSsl: Boolean = true,
     val mediaType: ApiMediaType = ApiMediaType.PROTOBUF,
     val logLevel: LogLevel = LogLevel.NONE,
-    val timeout: Duration = Duration.minutes(1)
+    val timeout: Duration = 30.seconds,
 ) {
-    constructor(
-        domainName: String = StorkServers.production.address,
-        useSsl: Boolean = true,
-        mediaType: ApiMediaType = ApiMediaType.PROTOBUF,
-        logLevel: LogLevel = LogLevel.NONE,
-        timeout: Duration = Duration.minutes(1)
-    ) : this({ domainName }, useSsl, mediaType, logLevel, timeout)
 
     private val httpProtocol = when {
         useSsl -> "https"
@@ -44,8 +37,8 @@ enum class ApiMediaType(internal val contentType: String) {
     JSON("application/json")
 }
 
-enum class LogLevel(internal val impl: HttpLoggingInterceptor.Level) {
-    NONE(HttpLoggingInterceptor.Level.NONE),
-    BASIC(HttpLoggingInterceptor.Level.BASIC),
-    BODY(HttpLoggingInterceptor.Level.BODY)
+enum class LogLevel {
+    NONE,
+    BASIC,
+    BODY
 }

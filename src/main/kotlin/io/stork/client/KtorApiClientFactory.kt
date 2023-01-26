@@ -20,7 +20,7 @@ internal object KtorApiClientFactory {
         }
         val ktorClient = HttpClient(ktorEngine) {
             install(WebSockets) {
-                pingInterval = 30_000
+                pingInterval = 10_000
             }
             expectSuccess = false
             HttpResponseValidator {
