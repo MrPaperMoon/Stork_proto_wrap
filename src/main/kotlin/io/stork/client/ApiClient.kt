@@ -3,6 +3,7 @@ package io.stork.client;
 import io.stork.client.module.Account
 import io.stork.client.module.Auth
 import io.stork.client.module.Avatar
+import io.stork.client.module.BadgeService
 import io.stork.client.module.Chat
 import io.stork.client.module.ChatActivity
 import io.stork.client.module.ChatMessage
@@ -15,7 +16,6 @@ import io.stork.client.module.Recordings
 import io.stork.client.module.Session
 import io.stork.client.module.Workspace
 import io.stork.client.ws.WebSocketProvider
-
 
 interface ApiClient : WebSocketProvider, SessionProvider {
     fun getConfig(): ApiClientConfig
@@ -34,6 +34,7 @@ interface ApiClient : WebSocketProvider, SessionProvider {
     val rtc: RTC
     val session: Session
     val workspace: Workspace
+    val badgeService: BadgeService
 
     companion object {
         operator fun invoke(config: ApiClientConfig = ApiClientConfig(),

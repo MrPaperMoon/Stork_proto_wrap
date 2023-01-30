@@ -17,6 +17,7 @@ import io.stork.client.ktor.getResult
 import io.stork.client.module.Account
 import io.stork.client.module.Auth
 import io.stork.client.module.Avatar
+import io.stork.client.module.BadgeService
 import io.stork.client.module.Chat
 import io.stork.client.module.ChatActivity
 import io.stork.client.module.ChatMessage
@@ -90,6 +91,8 @@ import io.stork.proto.client.messaging.chat.CreateChatRequest
 import io.stork.proto.client.messaging.chat.CreateChatResponse
 import io.stork.proto.client.messaging.chat.EditChatMessageRequest
 import io.stork.proto.client.messaging.chat.EditChatMessageResponse
+import io.stork.proto.client.messaging.chat.GetBadgeRequest
+import io.stork.proto.client.messaging.chat.GetBadgeResponse
 import io.stork.proto.client.messaging.chat.GetChatMessagesRequest
 import io.stork.proto.client.messaging.chat.GetChatMessagesResponse
 import io.stork.proto.client.messaging.chat.GetChatRequest
@@ -591,6 +594,12 @@ internal class KtorApiClient(
 
         override suspend fun leave(body: LeaveWorkspaceRequest): ApiResult<LeaveWorkspaceResponse> {
             return makeApiCall("workspace.leave", body)
+        }
+    }
+
+    override val badgeService: BadgeService = object : BadgeService {
+        override suspend fun getBadge(request: GetBadgeRequest): ApiResult<GetBadgeResponse> {
+            return makeApiCall("badge.get", request)
         }
     }
 }
