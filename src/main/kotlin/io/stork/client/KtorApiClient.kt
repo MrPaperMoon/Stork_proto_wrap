@@ -122,6 +122,8 @@ import io.stork.proto.client.profiles.PublicProfileListRequest
 import io.stork.proto.client.profiles.PublicProfileListResponse
 import io.stork.proto.client.recording.RecordingListRequest
 import io.stork.proto.client.recording.RecordingListResponse
+import io.stork.proto.client.recording.RemoveRecordingRequest
+import io.stork.proto.client.recording.RemoveRecordingResponse
 import io.stork.proto.client.recording.UpdateRecordingTitleRequest
 import io.stork.proto.client.recording.UpdateRecordingTitleResponse
 import io.stork.proto.client.session.AddPushNotificationsTokenRequest
@@ -507,6 +509,10 @@ internal class KtorApiClient(
 
         override suspend fun updateTitle(body: UpdateRecordingTitleRequest): ApiResult<UpdateRecordingTitleResponse> {
             return makeApiCall("recording.updateRecordingTitle", body)
+        }
+
+        override suspend fun remove(body: RemoveRecordingRequest): ApiResult<RemoveRecordingResponse> {
+            return makeApiCall("recording.remove", body)
         }
     }
 
