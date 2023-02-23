@@ -37,7 +37,7 @@ class SmokeTest {
 
     private fun createApiClient(mediaType: ApiMediaType): ApiClient {
         sessionProvider = BasicSessionProvider()
-        return ApiClient(ApiClientConfig(domainName = selectedServer.address, mediaType = mediaType), sessionProvider = sessionProvider)
+        return ApiClient(ApiClientConfig(domainNameProvider = { selectedServer.address }, mediaType = mediaType), sessionProvider = sessionProvider)
     }
 
     @ParameterizedTest

@@ -13,14 +13,21 @@ import io.stork.client.okhttp.Serializers
 import io.stork.client.ws.ReconnectingWebSocketProvider
 
 internal object KtorApiClientFactory {
+    private const val PING_INTERVAL_MILLIS = 10 * 1_000L
+    private const val SOCKET_TIMEOUT_MILLIS = 10 * 1_000L
+
+
     fun create(config: ApiClientConfig, sessionProvider: SessionProvider): ApiClient {
         val client = OkHttpFactory.createOkHttp(config, sessionProvider)
         val ktorEngine = OkHttp.create {
             preconfigured = client
         }
         val ktorClient = HttpClient(ktorEngine) {
+            install(HttpTimeout) {
+                socketTimeoutMillis = SOCKET_TIMEOUT_MILLIS
+            }
             install(WebSockets) {
-                pingInterval = 30_000
+                pingInterval = PING_INTERVAL_MILLIS
             }
             expectSuccess = false
             HttpResponseValidator {

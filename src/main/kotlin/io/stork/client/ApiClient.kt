@@ -1,4 +1,4 @@
-package io.stork.client;
+package io.stork.client
 
 import io.stork.client.module.Account
 import io.stork.client.module.Auth
@@ -10,6 +10,7 @@ import io.stork.client.module.ChatMessage
 import io.stork.client.module.Conference
 import io.stork.client.module.File
 import io.stork.client.module.Member
+import io.stork.client.module.Notification
 import io.stork.client.module.PublicProfile
 import io.stork.client.module.RTC
 import io.stork.client.module.Recordings
@@ -35,10 +36,10 @@ interface ApiClient : WebSocketProvider, SessionProvider {
     val session: Session
     val workspace: Workspace
     val badgeService: BadgeService
+    val notification: Notification
 
     companion object {
-        operator fun invoke(config: ApiClientConfig = ApiClientConfig(),
-                            sessionProvider: SessionProvider): ApiClient {
+        operator fun invoke(config: ApiClientConfig, sessionProvider: SessionProvider): ApiClient {
             return KtorApiClientFactory.create(config, sessionProvider)
         }
     }
