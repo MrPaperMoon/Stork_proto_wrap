@@ -102,6 +102,8 @@ import io.stork.proto.client.messaging.chat.InviteToChatRequest
 import io.stork.proto.client.messaging.chat.InviteToChatResponse
 import io.stork.proto.client.messaging.chat.JoinChatRequest
 import io.stork.proto.client.messaging.chat.JoinChatResponse
+import io.stork.proto.client.messaging.chat.LastChatMessageBulkRequest
+import io.stork.proto.client.messaging.chat.LastChatMessageBulkResponse
 import io.stork.proto.client.messaging.chat.LeaveChatRequest
 import io.stork.proto.client.messaging.chat.LeaveChatResponse
 import io.stork.proto.client.messaging.chat.ListRecentChatsRequest
@@ -405,6 +407,10 @@ internal class KtorApiClient(
 
         override suspend fun remove(body: RemoveChatMessageRequest): ApiResult<RemoveChatMessageResponse> {
             return makeApiCall("chat.message.remove", body)
+        }
+
+        override suspend fun lastMessageBulk(request: LastChatMessageBulkRequest): ApiResult<LastChatMessageBulkResponse> {
+            return makeApiCall("chat.lastMessage.bulk", request)
         }
     }
     override val conference: Conference = object : Conference {

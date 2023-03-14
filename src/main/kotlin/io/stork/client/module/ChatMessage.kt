@@ -5,6 +5,8 @@ import io.stork.proto.client.messaging.chat.EditChatMessageRequest
 import io.stork.proto.client.messaging.chat.EditChatMessageResponse
 import io.stork.proto.client.messaging.chat.GetChatMessagesRequest
 import io.stork.proto.client.messaging.chat.GetChatMessagesResponse
+import io.stork.proto.client.messaging.chat.LastChatMessageBulkRequest
+import io.stork.proto.client.messaging.chat.LastChatMessageBulkResponse
 import io.stork.proto.client.messaging.chat.RemoveChatMessageRequest
 import io.stork.proto.client.messaging.chat.RemoveChatMessageResponse
 import io.stork.proto.client.messaging.chat.SendChatMessageRequest
@@ -18,4 +20,5 @@ interface ChatMessage {
     suspend fun edit(body: EditChatMessageRequest): ApiResult<EditChatMessageResponse>
     suspend fun toggleReaction(body: ToggleChatMessageReactionRequest): ApiResult<ToggleChatMessageReactionResponse>
     suspend fun remove(body: RemoveChatMessageRequest): ApiResult<RemoveChatMessageResponse>
+    suspend fun lastMessageBulk(request: LastChatMessageBulkRequest): ApiResult<LastChatMessageBulkResponse>
 }
